@@ -201,7 +201,7 @@ header p{
 table{
     width:100%;
     border-collapse:collapse;
-    min-width:600px;
+    min-width:700px;
 }
 th,td{
     padding:11px;
@@ -210,6 +210,8 @@ th,td{
 }
 th{
     background:#edf8f1;
+    position:sticky;
+    top:0;
 }
 .badge{
     padding:5px 9px;
@@ -260,6 +262,12 @@ th{
 .ward-stat-box .label{
     font-size:12px;
     color:#66736b;
+}
+.table-container{
+    max-height:500px;
+    overflow-y:auto;
+    border:1px solid #e0e8e3;
+    border-radius:8px;
 }
 @media(max-width:900px){
     .sidebar{
@@ -358,22 +366,25 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 <h2>🗳️ मतदाता सूची (Voter List) 2026</h2>
 <div class="panel">
 <div class="toolbar">
-<input id="voterSearch" placeholder="नाम, पिता/पति, मकान संख्या खोजें..." oninput="renderVoters()">
+<input id="voterSearch" placeholder="नाम, पिता/पति, EPIC, मकान संख्या..." oninput="renderVoters()">
 <select id="voterWardFilter" onchange="renderVoters()">
 <option value="">सभी वार्ड</option>
 <option value="1">वार्ड 1</option>
 <option value="2">वार्ड 2</option>
 <option value="3">वार्ड 3</option>
 <option value="4">वार्ड 4</option>
+<option value="5">वार्ड 5</option>
+<option value="6">वार्ड 6</option>
 </select>
 <button class="btn secondary" onclick="exportVoterCSV()">⬇️ CSV</button>
 </div>
 <div class="ward-stats" id="voterStats"></div>
-<div class="table-wrap">
+<div class="table-container">
 <table>
 <thead>
 <tr>
 <th>क्र.सं.</th>
+<th>EPIC ID</th>
 <th>नाम</th>
 <th>पिता/पति का नाम</th>
 <th>मकान सं.</th>
@@ -409,7 +420,7 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 <input id="familySearch" placeholder="नाम, मोबाइल, वार्ड..." oninput="renderFamilies()">
 <button class="btn secondary" onclick="exportCSV('families')">⬇️ CSV</button>
 </div>
-<div class="table-wrap">
+<div class="table-container">
 <table>
 <thead><tr><th>परिवार प्रमुख</th><th>मोबाइल</th><th>वार्ड</th><th>सदस्य</th><th>ग्राम</th><th>Action</th></tr></thead>
 <tbody id="familyTable"></tbody>
@@ -436,7 +447,7 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 </form>
 </div>
 <div class="panel">
-<div class="table-wrap">
+<div class="table-container">
 <table>
 <thead><tr><th>कार्य</th><th>स्थान</th><th>लागत</th><th>स्थिति</th><th>Action</th></tr></thead>
 <tbody id="workTable"></tbody>
@@ -463,7 +474,7 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 </form>
 </div>
 <div class="panel">
-<div class="table-wrap">
+<div class="table-container">
 <table>
 <thead><tr><th>ID</th><th>नाम</th><th>समस्या</th><th>वार्ड</th><th>स्थिति</th><th>Action</th></tr></thead>
 <tbody id="complaintTable"></tbody>
@@ -505,7 +516,7 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 </form>
 </div>
 <div class="panel">
-<div class="table-wrap">
+<div class="table-container">
 <table>
 <thead><tr><th>नाम</th><th>पद</th><th>मोबाइल</th><th>क्षेत्र</th><th>Action</th></tr></thead>
 <tbody id="teamTable"></tbody>
@@ -537,7 +548,7 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 <div class="field"><label>ग्राम पंचायत नाम</label><input id="panchayatName"></div>
 <div class="field"><label>जिला</label><input id="district"></div>
 <div class="field"><label>राज्य</label><input id="state" value="Rajasthan"></div>
-<div class="field"><label>कुल वार्ड</label><input id="wardCount" type="number" min="1" value="4"></div>
+<div class="field"><label>कुल वार्ड</label><input id="wardCount" type="number" min="1" value="6"></div>
 <div><button class="btn">💾 Settings Save</button></div>
 </form>
 </div>
@@ -552,7 +563,7 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 
 <script>
 // ============================================================
-// LOGIN CREDENTIALS - FIXED
+// LOGIN CREDENTIALS
 // ============================================================
 const USERS = {
     admin: { password: "admin123", role: "admin", name: "Panchayat Admin" },
@@ -562,9 +573,17 @@ const USERS = {
 // ============================================================
 // DATABASE
 // ============================================================
-const STORAGE_KEY = "gram_panchayat_smart_voters_final";
+const STORAGE_KEY = "gram_panchayat_smart_voters_final_v2";
 
-// ----- VOTER DATA FROM PDFs -----
+// Generate EPIC ID
+function generateEPIC(ward, index) {
+    const prefix = "RJP";
+    const wardStr = String(ward).padStart(2, '0');
+    const numStr = String(index).padStart(6, '0');
+    return prefix + wardStr + numStr;
+}
+
+// ----- VOTER DATA WITH EPIC ID -----
 function generateVoterData() {
     // Ward 1 voters (from PDF - SAMLI PATHAR-Ward No-001.pdf)
     const ward1 = [
@@ -1446,7 +1465,7 @@ function generateVoterData() {
         {name:"प्रतिमा", father:"प्रेम शंकर", house:"333", age:19, gender:"महिला"}
     ];
 
-    // Ward 3 - sample data
+    // Ward 3 - sample data (120 voters)
     const ward3 = [];
     const firstNames = ["राम", "श्याम", "मोहन", "सोहन", "राधा", "सीता", "गीता", "लीला", "कमला", "सविता", "सुनीता", "अनीता", "राज", "सूरज", "चन्द्र", "प्रकाश", "दीपक", "अशोक", "सुनील", "नरेश"];
     const surnames = ["मीणा", "मीना", "कुमार", "लाल", "राम"];
@@ -1463,7 +1482,39 @@ function generateVoterData() {
         });
     }
 
-    return { ward1, ward2, ward3, ward4 };
+    // Ward 5 - Sample data (80 voters)
+    const ward5 = [];
+    const names5 = ["राकेश", "मुकेश", "रमेश", "सुरेश", "महेश", "कैलाश", "गोपाल", "नन्द", "राजेश", "विनोद", "सुनील", "हरि", "मनोज", "पंकज", "संजय", "अजय", "विजय", "जय", "राज", "अमित"];
+    for (let i = 0; i < 80; i++) {
+        const isMale = i % 2 === 0;
+        const name = names5[i % names5.length] + (isMale ? " मीणा" : " बाई");
+        const father = names5[(i+5) % names5.length] + " " + (isMale ? "मीणा" : "मीना");
+        ward5.push({
+            name: name,
+            father: father,
+            house: String(500 + i),
+            age: 18 + (i % 45),
+            gender: isMale ? "पुरुष" : "महिला"
+        });
+    }
+
+    // Ward 6 - Sample data (70 voters)
+    const ward6 = [];
+    const names6 = ["आशा", "कविता", "सुषमा", "शारदा", "मनीषा", "रचना", "सरिता", "नेहा", "प्रिया", "मोना", "सीमा", "रीना", "पूजा", "आरती", "किरण", "अनु", "स्नेहा", "दीपा", "माया", "नीता"];
+    for (let i = 0; i < 70; i++) {
+        const isMale = i % 3 === 0;
+        const name = names6[i % names6.length] + (isMale ? " कुमार" : " बाई");
+        const father = names6[(i+7) % names6.length] + " " + (isMale ? "कुमार" : "मीणा");
+        ward6.push({
+            name: name,
+            father: father,
+            house: String(600 + i),
+            age: 18 + (i % 40),
+            gender: isMale ? "पुरुष" : "महिला"
+        });
+    }
+
+    return { ward1, ward2, ward3, ward4, ward5, ward6 };
 }
 
 // ============================================================
@@ -1473,12 +1524,22 @@ let database = JSON.parse(localStorage.getItem(STORAGE_KEY));
 
 if (!database) {
     const voterData = generateVoterData();
+    // Add EPIC IDs to all voters
+    const allVoters = [
+        ...voterData.ward1.map((v, i) => ({ ...v, ward: "1", village: "राणपुर", epic: generateEPIC(1, i+1) })),
+        ...voterData.ward2.map((v, i) => ({ ...v, ward: "2", village: "राणपुर", epic: generateEPIC(2, i+1) })),
+        ...voterData.ward3.map((v, i) => ({ ...v, ward: "3", village: "सामली पठार", epic: generateEPIC(3, i+1) })),
+        ...voterData.ward4.map((v, i) => ({ ...v, ward: "4", village: "प्रयाग ची का पठार", epic: generateEPIC(4, i+1) })),
+        ...voterData.ward5.map((v, i) => ({ ...v, ward: "5", village: "सामली पठार", epic: generateEPIC(5, i+1) })),
+        ...voterData.ward6.map((v, i) => ({ ...v, ward: "6", village: "सामली पठार", epic: generateEPIC(6, i+1) }))
+    ];
+
     database = {
         settings: {
             name: "सामली पठार",
             district: "प्रतापगढ़",
             state: "Rajasthan",
-            wards: 4
+            wards: 6
         },
         families: [],
         works: [],
@@ -1493,12 +1554,7 @@ if (!database) {
             {title:"जल जीवन मिशन", description:"पेयजल संबंधी जानकारी"},
             {title:"मनरेगा", description:"ग्रामीण रोजगार संबंधी जानकारी"}
         ],
-        voters: [
-            ...voterData.ward1.map(v => ({ ...v, ward: "1", village: "राणपुर" })),
-            ...voterData.ward2.map(v => ({ ...v, ward: "2", village: "राणपुर" })),
-            ...voterData.ward3.map(v => ({ ...v, ward: "3", village: "सामली पठार" })),
-            ...voterData.ward4.map(v => ({ ...v, ward: "4", village: "प्रयाग ची का पठार" }))
-        ]
+        voters: allVoters
     };
     saveDatabase();
 }
@@ -1518,7 +1574,7 @@ function escapeHTML(value) {
 }
 
 // ============================================================
-// LOGIN - FIXED
+// LOGIN
 // ============================================================
 let currentUser = null;
 
@@ -1542,7 +1598,6 @@ document.getElementById("loginForm").addEventListener("submit", function(e) {
     }
 });
 
-// Check saved session
 const savedUser = sessionStorage.getItem("currentUser");
 if (savedUser) {
     try {
@@ -1609,6 +1664,7 @@ function renderVoters() {
     let filtered = database.voters.filter(v => {
         const matchSearch = v.name.toLowerCase().includes(search) ||
                            v.father.toLowerCase().includes(search) ||
+                           String(v.epic || "").toLowerCase().includes(search) ||
                            String(v.house).toLowerCase().includes(search) ||
                            v.village.toLowerCase().includes(search);
         const matchWard = !wardFilter || v.ward === wardFilter;
@@ -1617,7 +1673,7 @@ function renderVoters() {
 
     // Stats
     const stats = document.getElementById("voterStats");
-    const wards = ["1","2","3","4"];
+    const wards = ["1","2","3","4","5","6"];
     let statsHtml = "";
     wards.forEach(w => {
         const wVoters = database.voters.filter(v => v.ward === w);
@@ -1639,6 +1695,7 @@ function renderVoters() {
         table.innerHTML += `
             <tr>
                 <td>${i+1}</td>
+                <td><span class="badge">${escapeHTML(v.epic || 'N/A')}</span></td>
                 <td>${escapeHTML(v.name)}</td>
                 <td>${escapeHTML(v.father)}</td>
                 <td>${escapeHTML(v.house)}</td>
@@ -1652,9 +1709,9 @@ function renderVoters() {
 }
 
 function exportVoterCSV() {
-    let csv = "क्र.सं.,नाम,पिता/पति,मकान सं.,आयु,लिंग,वार्ड,गाँव\n";
+    let csv = "क्र.सं.,EPIC ID,नाम,पिता/पति,मकान सं.,आयु,लिंग,वार्ड,गाँव\n";
     database.voters.forEach((v, i) => {
-        csv += `${i+1},"${v.name}","${v.father}","${v.house}",${v.age},"${v.gender}",${v.ward},"${v.village}"\n`;
+        csv += `${i+1},"${v.epic || ''}","${v.name}","${v.father}","${v.house}",${v.age},"${v.gender}",${v.ward},"${v.village}"\n`;
     });
     const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -1669,7 +1726,7 @@ function exportVoterCSV() {
 // FAMILY FUNCTIONS
 // ============================================================
 function createWardOptions() {
-    let count = Number(database.settings.wards) || 4;
+    let count = Number(database.settings.wards) || 6;
     ["familyWard", "complaintWard"].forEach(function(id) {
         const select = document.getElementById(id);
         const oldValue = select.value;
@@ -1927,7 +1984,7 @@ document.getElementById("settingsForm").addEventListener("submit", function(e) {
         name: document.getElementById("panchayatName").value,
         district: document.getElementById("district").value,
         state: document.getElementById("state").value,
-        wards: Number(document.getElementById("wardCount").value) || 4
+        wards: Number(document.getElementById("wardCount").value) || 6
     };
     saveDatabase();
     renderAll();
@@ -1938,7 +1995,7 @@ function loadSettings() {
     document.getElementById("panchayatName").value = database.settings.name || "सामली पठार";
     document.getElementById("district").value = database.settings.district || "प्रतापगढ़";
     document.getElementById("state").value = database.settings.state || "Rajasthan";
-    document.getElementById("wardCount").value = database.settings.wards || 4;
+    document.getElementById("wardCount").value = database.settings.wards || 6;
     document.getElementById("panchayatTitle").innerText = database.settings.name + " • " + database.settings.district + " • " + database.settings.state;
 }
 
