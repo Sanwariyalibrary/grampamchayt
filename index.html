@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gram Panchayat Smart Portal</title>
+<title>Gram Panchayat Smart Portal - PDF to Excel</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -42,7 +42,7 @@ header p{font-size:13px;margin-top:5px;}
 .btn.danger{background:#c62828;}
 .btn.warning{background:#e69b00;}
 .btn.blue{background:#1976d2;}
-.table-wrap{overflow:auto;}
+.btn.purple{background:#7b1fa2;}
 table{width:100%;border-collapse:collapse;min-width:900px;}
 th,td{padding:8px;border-bottom:1px solid #edf0ee;text-align:left;font-size:13px;}
 th{background:#edf8f1;position:sticky;top:0;z-index:5;}
@@ -63,9 +63,7 @@ th{background:#edf8f1;position:sticky;top:0;z-index:5;}
 .dark-mode .sidebar button:hover,.dark-mode .sidebar button.active{background:#0f3460!important;color:#fff!important;}
 .dark-mode table th{background:#0f3460!important;color:#fff!important;}
 .dark-mode table td{border-color:#333!important;color:#ddd!important;}
-.dark-mode .notice{background:#1a1a2e!important;border-left-color:#e0a400!important;}
 .dark-mode input,.dark-mode select,.dark-mode textarea{background:#2a2a4a!important;color:#eee!important;border-color:#444!important;}
-.dark-mode .menu{background:#16213e!important;color:#fff!important;}
 .theme-toggle{background:transparent;border:none;color:white;font-size:24px;cursor:pointer;padding:5px 10px;float:right;margin-right:10px;}
 .voice-btn{background:#075e36;color:white;border:none;border-radius:50%;width:40px;height:40px;cursor:pointer;font-size:18px;}
 .voice-btn.listening{background:#c62828;animation:pulse 1s infinite;}
@@ -86,28 +84,40 @@ th{background:#edf8f1;position:sticky;top:0;z-index:5;}
 .upload-area .icon{font-size:60px;margin-bottom:10px;}
 .upload-area h3{color:#075e36;margin-bottom:8px;}
 .upload-area p{color:#66736b;font-size:14px;}
-.progress-bar{width:100%;height:20px;background:#e0e8e3;border-radius:10px;overflow:hidden;margin:15px 0;}
+.progress-bar{width:100%;height:22px;background:#e0e8e3;border-radius:11px;overflow:hidden;margin:15px 0;}
 .progress-bar .fill{height:100%;background:linear-gradient(90deg,#075e36,#10a95b);width:0%;transition:width 0.3s;display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:bold;}
 .edit-modal{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:99999;padding:15px;}
 .edit-modal.show{display:flex;}
 .edit-modal-content{background:white;padding:25px;border-radius:15px;max-width:600px;width:100%;max-height:90vh;overflow-y:auto;}
 .edit-modal-content h3{color:#075e36;margin-bottom:15px;border-bottom:2px solid #e0efe7;padding-bottom:10px;}
-.edit-modal-content .grid{grid-template-columns:1fr 1fr;}
 .modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end;}
-.dark-mode .edit-modal-content{background:#16213e;color:#eee;}
-.dark-mode .edit-modal-content h3{color:#4aeba5;border-bottom-color:#333;}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:15px 0;}
 .stat-box{background:linear-gradient(135deg,#075e36,#10a95b);color:white;padding:15px;border-radius:12px;text-align:center;}
 .stat-box .num{font-size:28px;font-weight:bold;}
 .stat-box .lbl{font-size:12px;opacity:0.9;margin-top:4px;}
+/* PDF PREVIEW TABLE */
+.preview-table{width:100%;border-collapse:collapse;margin-top:15px;background:white;font-size:12px;}
+.preview-table th{background:#075e36;color:white;padding:10px 6px;position:sticky;top:0;font-size:12px;}
+.preview-table td{padding:8px 6px;border-bottom:1px solid #e0e8e3;}
+.preview-table tr:nth-child(even){background:#f9fdfb;}
+.preview-container{max-height:400px;overflow:auto;border:1px solid #ddd;border-radius:8px;margin-top:15px;}
+.column-map{background:#f0faf4;padding:15px;border-radius:10px;margin:15px 0;border-left:4px solid #10a95b;}
+.column-map h4{color:#075e36;margin-bottom:10px;font-size:15px;}
+.column-map .col-row{display:flex;gap:10px;margin:6px 0;align-items:center;flex-wrap:wrap;}
+.column-map .col-row label{font-weight:bold;font-size:13px;min-width:130px;}
+.column-map .col-row select{padding:6px 10px;border:1px solid #ccd5cf;border-radius:6px;font-size:13px;}
+.dark-mode .column-map{background:#16213e;}
+.dark-mode .column-map h4{color:#4aeba5;}
+.dark-mode .preview-table{background:#16213e;color:#eee;}
+.dark-mode .preview-table th{background:#0f3460;}
+.dark-mode .preview-table tr:nth-child(even){background:#1a2a4a;}
+.dark-mode .preview-table td{border-color:#333;}
 @media(max-width:900px){
 .sidebar{position:fixed;left:-260px;top:75px;z-index:500;transition:.3s;background:white;width:250px;}
 .sidebar.open{left:0;}
 .grid{grid-template-columns:1fr;}
-.edit-modal-content .grid{grid-template-columns:1fr;}
 .content{padding:12px;}
 }
-@media print{.sidebar,.menu,.toolbar,.btn{display:none!important;}.content{padding:0;}}
 </style>
 </head>
 <body>
@@ -116,7 +126,7 @@ th{background:#edf8f1;position:sticky;top:0;z-index:5;}
 <div id="loginScreen">
 <div class="login-box">
 <h2>🏛️ Gram Panchayat Smart</h2>
-<p>Digital Panchayat Management Portal</p>
+<p>PDF → Excel Voter Management</p>
 <button class="theme-toggle" onclick="toggleDarkMode()" style="float:right;background:transparent;border:none;font-size:20px;cursor:pointer;">🌙</button>
 <form id="loginForm">
 <label>Username</label>
@@ -133,10 +143,9 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 </div>
 </div>
 
-<!-- HEADER -->
 <header>
 <button class="menu" onclick="toggleMenu()">☰ Menu</button>
-<button class="theme-toggle" onclick="toggleDarkMode()" title="Dark/Light Mode">🌙</button>
+<button class="theme-toggle" onclick="toggleDarkMode()">🌙</button>
 <h1>🏛️ Gram Panchayat Smart Portal</h1>
 <p id="panchayatTitle">सामली पठार • प्रतापगढ़ • राजस्थान</p>
 </header>
@@ -154,8 +163,8 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 <div class="cards">
 <div class="card"><h3>कुल परिवार</h3><div class="number" id="totalFamilies">0</div></div>
 <div class="card"><h3>कुल निवासी</h3><div class="number" id="totalResidents">0</div></div>
+<div class="card"><h3>कुल मतदाता</h3><div class="number" id="totalVoters">0</div></div>
 <div class="card"><h3>विकास कार्य</h3><div class="number" id="totalWorks">0</div></div>
-<div class="card"><h3>खुली शिकायतें</h3><div class="number" id="totalComplaints">0</div></div>
 </div>
 <div class="chart-container">
 <h3>📈 वार्डवार मतदाता आँकड़े</h3>
@@ -173,46 +182,50 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 
 <!-- PDF UPLOAD -->
 <section id="pdfupload" class="page">
-<h2>📄 PDF Upload → Excel (Voter Data)</h2>
+<h2>📄 PDF Upload → Excel (Column-wise)</h2>
 <div class="panel">
-<p class="small" style="margin-bottom:10px;">PDF file (Voter List) upload करें — Data automatically extract होकर Excel में save हो जाएगा।</p>
 <div class="upload-area" id="uploadArea">
 <div class="icon">📄</div>
 <h3>PDF File यहाँ Drop करें</h3>
-<p>या click करके select करें (Max 20MB)</p>
+<p>या click करके select करें (Voter List PDF)</p>
 <input type="file" id="pdfFileInput" accept=".pdf" style="display:none;">
 </div>
 <div class="progress-bar" id="progressBar" style="display:none;">
 <div class="fill" id="progressFill">0%</div>
 </div>
 <div id="pdfStatus" class="small" style="margin-top:10px;"></div>
-<div style="margin-top:15px;">
-<button class="btn blue" onclick="downloadExcelTemplate()">📋 Excel Template Download</button>
-<button class="btn secondary" onclick="exportVotersToExcel()">📊 मौजूदा Data Export (.xlsx)</button>
-<button class="btn secondary" onclick="exportVoterCSV()">📄 CSV Export</button>
+</div>
+
+<!-- COLUMN MAPPING -->
+<div class="panel" id="columnMapPanel" style="display:none;">
+<h3>🎯 Column Detection</h3>
+<div class="column-map">
+<h4>Extracted Columns (PDF से मिले)</h4>
+<div id="columnMapList"></div>
+</div>
+<div style="margin-top:10px;">
+<button class="btn blue" onclick="downloadExtractedExcel()">📊 Excel Download (Detected Data)</button>
+<button class="btn purple" onclick="saveExtractedToDatabase()">💾 Save to Database</button>
+<button class="btn secondary" onclick="clearPreview()">❌ Cancel</button>
+</div>
+</div>
+
+<!-- PREVIEW -->
+<div class="panel" id="previewPanel" style="display:none;">
+<h3>👁️ Preview (First 100 rows)</h3>
+<div class="small" id="previewCount" style="margin-bottom:10px;"></div>
+<div class="preview-container">
+<table class="preview-table">
+<thead id="previewHead"></thead>
+<tbody id="previewBody"></tbody>
+</table>
 </div>
 </div>
 
 <div class="panel">
-<h3>📋 मैन्युअल Entry (PDF न हो तो)</h3>
-<form id="manualVoterForm" class="grid">
-<div class="field"><label>नाम *</label><input id="mVoterName" required></div>
-<div class="field"><label>पिता/पति का नाम</label><input id="mVoterFather"></div>
-<div class="field"><label>EPIC ID</label><input id="mVoterEpic"></div>
-<div class="field"><label>मकान संख्या</label><input id="mVoterHouse"></div>
-<div class="field"><label>आयु</label><input id="mVoterAge" type="number"></div>
-<div class="field"><label>लिंग</label>
-<select id="mVoterGender"><option>पुरुष</option><option>महिला</option><option>अन्य</option></select></div>
-<div class="field"><label>वार्ड</label>
-<select id="mVoterWard">
-<option value="1">वार्ड 1</option><option value="2">वार्ड 2</option>
-<option value="3">वार्ड 3</option><option value="4">वार्ड 4</option>
-<option value="5">वार्ड 5</option><option value="6">वार्ड 6</option>
-</select></div>
-<div class="field"><label>गाँव</label><input id="mVoterVillage" value="सामली पठार"></div>
-<div class="field"><label>📱 मोबाइल नंबर</label><input id="mVoterMobile" type="tel" placeholder="10 digit mobile"></div>
-<div><button class="btn" type="submit">➕ मतदाता जोड़ें</button></div>
-</form>
+<h3>📋 Sample Excel Format</h3>
+<button class="btn secondary" onclick="downloadExcelTemplate()">📋 Template Download</button>
+<button class="btn secondary" onclick="exportVotersToExcel()">📊 मौजूदा Data Export</button>
 </div>
 </section>
 
@@ -222,8 +235,7 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 <div class="panel">
 <div class="stats-grid" id="voterTopStats"></div>
 <div class="toolbar">
-<input id="voterSearch" placeholder="नाम, पिता, EPIC, मोबाइल, मकान..." oninput="renderVoters()">
-<button class="voice-btn" onclick="startVoiceSearch('voterSearch')" title="Voice Search">🎤</button>
+<input id="voterSearch" placeholder="नाम, पिता, EPIC, मोबाइल..." oninput="renderVoters()">
 <select id="voterWardFilter" onchange="renderVoters()">
 <option value="">सभी वार्ड</option>
 <option value="1">वार्ड 1</option><option value="2">वार्ड 2</option>
@@ -232,7 +244,7 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 </select>
 <button class="btn secondary" onclick="exportVotersToExcel()">📊 Excel</button>
 <button class="btn secondary" onclick="exportVoterCSV()">📄 CSV</button>
-<button class="btn secondary" onclick="exportVoterPDF()">🖨️ Print</button>
+<button class="btn secondary" onclick="window.print()">🖨️ Print</button>
 </div>
 <div class="ward-stats" id="voterStats"></div>
 <div class="table-container">
@@ -254,7 +266,6 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 <section id="families" class="page">
 <h2>👥 परिवार / निवासी</h2>
 <div class="panel">
-<h3>नया परिवार जोड़ें</h3>
 <form id="familyForm" class="grid">
 <div class="field"><label>परिवार प्रमुख</label><input id="familyHead" required></div>
 <div class="field"><label>मोबाइल नंबर</label><input id="familyMobile" type="tel"></div>
@@ -266,10 +277,6 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 </form>
 </div>
 <div class="panel">
-<div class="toolbar">
-<input id="familySearch" placeholder="नाम, मोबाइल, वार्ड..." oninput="renderFamilies()">
-<button class="btn secondary" onclick="exportFamiliesToExcel()">📊 Excel</button>
-</div>
 <div class="table-container">
 <table>
 <thead><tr><th>परिवार प्रमुख</th><th>मोबाइल</th><th>वार्ड</th><th>सदस्य</th><th>ग्राम</th><th>Action</th></tr></thead>
@@ -305,7 +312,7 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 
 <!-- COMPLAINTS -->
 <section id="complaints" class="page">
-<h2>📝 शिकायत / समस्या</h2>
+<h2>📝 शिकायत</h2>
 <div class="panel">
 <form id="complaintForm" class="grid">
 <div class="field"><label>नाम</label><input id="complaintName" required></div>
@@ -313,8 +320,8 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 <div class="field"><label>समस्या</label>
 <select id="complaintType"><option>पानी</option><option>सड़क</option><option>नाली</option><option>बिजली</option><option>स्ट्रीट लाइट</option><option>स्वच्छता</option><option>अन्य</option></select></div>
 <div class="field"><label>वार्ड</label><select id="complaintWard"></select></div>
-<div class="field"><label>समस्या का विवरण</label><textarea id="complaintText"></textarea></div>
-<div><button class="btn" type="submit">📩 शिकायत दर्ज करें</button></div>
+<div class="field"><label>विवरण</label><textarea id="complaintText"></textarea></div>
+<div><button class="btn" type="submit">📩 दर्ज करें</button></div>
 </form>
 </div>
 <div class="panel">
@@ -335,7 +342,7 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 
 <!-- NOTICES -->
 <section id="notices" class="page">
-<h2>🔔 पंचायत Notifications</h2>
+<h2>🔔 Notifications</h2>
 <div class="panel">
 <form id="noticeForm" class="grid">
 <div class="field"><label>शीर्षक</label><input id="noticeTitle" required></div>
@@ -349,14 +356,14 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 
 <!-- TEAM -->
 <section id="team" class="page">
-<h2>👨‍💼 Staff / Team</h2>
+<h2>👨‍💼 Team</h2>
 <div class="panel">
 <form id="teamForm" class="grid">
 <div class="field"><label>नाम</label><input id="teamName" required></div>
 <div class="field"><label>पद</label><input id="teamRole"></div>
 <div class="field"><label>मोबाइल</label><input id="teamMobile" type="tel"></div>
 <div class="field"><label>क्षेत्र</label><input id="teamArea"></div>
-<div><button class="btn" type="submit">➕ Member जोड़ें</button></div>
+<div><button class="btn" type="submit">➕ जोड़ें</button></div>
 </form>
 </div>
 <div class="panel">
@@ -379,30 +386,30 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 <div class="card"><h3>खुली शिकायतें</h3><div class="number" id="reportComplaints">0</div></div>
 </div>
 <div class="panel">
-<button class="btn" onclick="window.print()">🖨️ Print Report</button>
+<button class="btn" onclick="window.print()">🖨️ Print</button>
 <button class="btn secondary" onclick="downloadBackup()">💾 JSON Backup</button>
-<button class="btn secondary" onclick="exportAllData()">📤 Export All Data</button>
+<button class="btn secondary" onclick="exportAllData()">📤 Export All</button>
 <button class="btn blue" onclick="exportVotersToExcel()">📊 Voter Excel</button>
 </div>
 </section>
 
 <!-- SETTINGS -->
 <section id="settings" class="page">
-<h2>⚙️ पंचायत Settings</h2>
+<h2>⚙️ Settings</h2>
 <div class="panel">
 <form id="settingsForm" class="grid">
 <div class="field"><label>ग्राम पंचायत नाम</label><input id="panchayatName"></div>
 <div class="field"><label>जिला</label><input id="district"></div>
 <div class="field"><label>राज्य</label><input id="state" value="Rajasthan"></div>
 <div class="field"><label>कुल वार्ड</label><input id="wardCount" type="number" min="1" value="6"></div>
-<div><button class="btn" type="submit">💾 Settings Save</button></div>
+<div><button class="btn" type="submit">💾 Save</button></div>
 </form>
 </div>
 <div class="panel">
 <h3>⚠️ Data Management</h3>
 <button class="btn danger" onclick="resetAllData()">सारा Data Delete</button>
-<button class="btn secondary" onclick="importBackup()">📥 Import Backup</button>
-<button class="btn warning" onclick="loadDemoVoters()">🔄 Demo Voters Load</button>
+<button class="btn secondary" onclick="importBackup()">📥 Import</button>
+<button class="btn warning" onclick="loadSampleData()">🔄 Sample Data</button>
 </div>
 </section>
 
@@ -429,18 +436,18 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 <option value="5">वार्ड 5</option><option value="6">वार्ड 6</option>
 </select></div>
 <div class="field"><label>गाँव</label><input id="editVillage"></div>
-<div class="field"><label>📱 मोबाइल नंबर</label><input id="editMobile" type="tel" placeholder="10 digit"></div>
+<div class="field"><label>📱 मोबाइल</label><input id="editMobile" type="tel" placeholder="10 digit"></div>
 </div>
 <div class="modal-actions">
 <button class="btn secondary" onclick="closeEditModal()">❌ Cancel</button>
-<button class="btn" onclick="saveVoterEdit()">💾 Save Changes</button>
+<button class="btn" onclick="saveVoterEdit()">💾 Save</button>
 </div>
 </div>
 </div>
 
 <script>
 // ============================================================
-// PDF.js Worker Setup
+// PDF.js Worker
 // ============================================================
 if (typeof pdfjsLib !== 'undefined') {
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -454,10 +461,10 @@ const USERS = {
     staff: { password: "staff123", role: "staff", name: "Panchayat Staff" }
 };
 
-const STORAGE_KEY = "gram_panchayat_smart_v4";
+const STORAGE_KEY = "gram_panchayat_v5";
 
 // ============================================================
-// DATABASE INIT
+// DATABASE
 // ============================================================
 let database = null;
 try {
@@ -470,12 +477,12 @@ if (!database || !database.voters) {
         settings: { name: "सामली पठार", district: "प्रतापगढ़", state: "Rajasthan", wards: 6 },
         families: [], works: [], complaints: [], notices: [], team: [],
         schemes: [
-            {title:"प्रधानमंत्री आवास योजना", description:"आवास संबंधी सरकारी जानकारी"},
-            {title:"PM-KISAN", description:"किसानों के लिए सरकारी योजना"},
-            {title:"सामाजिक सुरक्षा पेंशन", description:"पेंशन एवं सामाजिक सुरक्षा"},
-            {title:"स्वच्छ भारत मिशन", description:"स्वच्छता संबंधी जानकारी"},
-            {title:"जल जीवन मिशन", description:"पेयजल संबंधी जानकारी"},
-            {title:"मनरेगा", description:"ग्रामीण रोजगार संबंधी जानकारी"}
+            {title:"प्रधानमंत्री आवास योजना", description:"आवास संबंधी जानकारी"},
+            {title:"PM-KISAN", description:"किसानों के लिए योजना"},
+            {title:"सामाजिक सुरक्षा पेंशन", description:"पेंशन योजना"},
+            {title:"स्वच्छ भारत मिशन", description:"स्वच्छता जानकारी"},
+            {title:"जल जीवन मिशन", description:"पेयजल जानकारी"},
+            {title:"मनरेगा", description:"रोजगार योजना"}
         ],
         voters: []
     };
@@ -496,57 +503,6 @@ function escapeHTML(value) {
     return String(value ?? "").replace(/[&<>"']/g, function(m) {
         return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[m];
     });
-}
-
-// ============================================================
-// DEMO VOTERS LOAD (optional)
-// ============================================================
-function loadDemoVoters() {
-    if (!confirm("Demo voters load करें? मौजूदा data में add होंगे।")) return;
-    const demo = [
-        {name:"राम लाल", father:"माझीरा बी मीमा", house:"01", age:52, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
-        {name:"रामली बाई", father:"राम लाल", house:"01", age:50, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
-        {name:"धनेश्वर", father:"माझीरा", house:"1", age:36, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
-        {name:"तुलसी", father:"धनेश्वर", house:"1", age:35, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
-        {name:"गीता कुमारी मीमा", father:"राम लाल मीमा", house:"1", age:23, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
-        {name:"शांति कुमारी", father:"राम लाल", house:"01", age:21, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
-        {name:"राधा कुमारी", father:"प्रश्नराज", house:"01", age:20, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
-        {name:"मगवती", father:"मगवती", house:"3", age:62, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
-        {name:"नंदुनी", father:"प्रश्नराज", house:"3", age:62, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
-        {name:"मेरकी", father:"रामलाल", house:"", age:31, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
-        {name:"सिवलाल", father:"मनवती", house:"3", age:30, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
-        {name:"कन्हैयालाल", father:"मनवती", house:"3", age:30, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
-        {name:"रेखा", father:"सिवलाल", house:"3", age:28, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
-        {name:"गणेश लाल", father:"मनवती लाल", house:"26", age:26, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
-        {name:"शारदा कुमारी", father:"गणेश लाल", house:"03", age:24, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
-        {name:"सविता", father:"कन्हैया लाल", house:"03", age:24, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
-        {name:"रकमा", father:"देवेबी", house:"4", age:60, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
-        {name:"हिंकी", father:"रकमा", house:"4", age:60, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
-        {name:"कुलचन्द", father:"मनवती", house:"4", age:59, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
-        {name:"कैलास", father:"मनवती", house:"4", age:40, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
-        {name:"काली", father:"कैलास", house:"4", age:39, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
-        {name:"रामलाल", father:"रमलाल", house:"4", age:36, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
-        {name:"नाभुलाल", father:"मनवती", house:"4", age:36, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
-        {name:"प्रेमवाई", father:"रमलाल", house:"4", age:36, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
-        {name:"नारणी", father:"नाथूलाल", house:"4", age:35, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
-        {name:"ईश्वरलाल", father:"रकमा", house:"4", age:32, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
-        {name:"खातु राम", father:"हुलचन्द", house:"4", age:31, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
-        {name:"पारसलम", father:"कुलचंद", house:"4", age:30, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
-        {name:"पिंकी कुमारी", father:"पारसलम", house:"4", age:29, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
-        {name:"गोरखन", father:"स्नातक", house:"5", age:62, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""}
-    ];
-    let idx = database.voters.length;
-    demo.forEach(v => {
-        idx++;
-        database.voters.push({
-            ...v,
-            id: generateID(),
-            epic: v.epic || generateEPIC(v.ward, idx)
-        });
-    });
-    saveDatabase();
-    renderAll();
-    showToast('✅ Demo voters add हो गए: ' + demo.length, 'success');
 }
 
 // ============================================================
@@ -624,7 +580,7 @@ function showPage(pageName, button) {
 function toggleMenu() { document.getElementById("sidebar").classList.toggle("open"); }
 
 // ============================================================
-// PDF UPLOAD & PARSING
+// PDF UPLOAD & COLUMN-WISE EXTRACTION
 // ============================================================
 const uploadArea = document.getElementById("uploadArea");
 const pdfFileInput = document.getElementById("pdfFileInput");
@@ -632,8 +588,10 @@ const progressBar = document.getElementById("progressBar");
 const progressFill = document.getElementById("progressFill");
 const pdfStatus = document.getElementById("pdfStatus");
 
-uploadArea.addEventListener("click", () => pdfFileInput.click());
+let extractedData = []; // Store extracted data
+let detectedColumns = []; // Store detected columns
 
+uploadArea.addEventListener("click", () => pdfFileInput.click());
 uploadArea.addEventListener("dragover", (e) => {
     e.preventDefault();
     uploadArea.classList.add("dragover");
@@ -642,8 +600,7 @@ uploadArea.addEventListener("dragleave", () => uploadArea.classList.remove("drag
 uploadArea.addEventListener("drop", (e) => {
     e.preventDefault();
     uploadArea.classList.remove("dragover");
-    const files = e.dataTransfer.files;
-    if (files.length > 0) handlePDFUpload(files[0]);
+    if (e.dataTransfer.files.length > 0) handlePDFUpload(e.dataTransfer.files[0]);
 });
 
 pdfFileInput.addEventListener("change", (e) => {
@@ -652,11 +609,7 @@ pdfFileInput.addEventListener("change", (e) => {
 
 async function handlePDFUpload(file) {
     if (!file.name.toLowerCase().endsWith('.pdf')) {
-        showToast('❌ केवल PDF file upload करें', 'error');
-        return;
-    }
-    if (file.size > 20 * 1024 * 1024) {
-        showToast('❌ File 20MB से बड़ी है', 'error');
+        showToast('❌ केवल PDF file', 'error');
         return;
     }
 
@@ -669,27 +622,55 @@ async function handlePDFUpload(file) {
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         const totalPages = pdf.numPages;
-        pdfStatus.innerHTML = `📖 ${totalPages} pages मिले। Data extract हो रहा है...`;
+        pdfStatus.innerHTML = `📖 ${totalPages} pages मिले। Column-wise data extract हो रहा है...`;
 
-        let allText = "";
+        const allRows = [];
+
         for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
             const page = await pdf.getPage(pageNum);
             const textContent = await page.getTextContent();
-            const pageText = textContent.items.map(item => item.str).join(' ');
-            allText += "\n" + pageText;
+            
+            // Group text items by their Y position (row-wise)
+            const rowsMap = new Map();
+            textContent.items.forEach(item => {
+                const y = Math.round(item.transform[5]); // Y position
+                const x = item.transform[4]; // X position
+                if (!rowsMap.has(y)) rowsMap.set(y, []);
+                rowsMap.get(y).push({ x, text: item.str.trim() });
+            });
+
+            // Sort by Y (top to bottom)
+            const sortedY = [...rowsMap.keys()].sort((a, b) => b - a);
+            
+            sortedY.forEach(y => {
+                const items = rowsMap.get(y).sort((a, b) => a.x - b.x);
+                const rowText = items.map(i => i.text).filter(t => t).join(' | ');
+                if (rowText.trim().length > 3) {
+                    allRows.push({
+                        page: pageNum,
+                        y: y,
+                        items: items,
+                        text: rowText
+                    });
+                }
+            });
+
             const pct = Math.round((pageNum / totalPages) * 70) + 5;
             progressFill.style.width = pct + '%';
             progressFill.textContent = pct + '%';
         }
 
-        pdfStatus.innerHTML = '🔍 Data parse हो रहा है...';
+        pdfStatus.innerHTML = '🔍 Columns detect हो रहे हैं...';
         progressFill.style.width = '80%';
         progressFill.textContent = '80%';
 
-        const extractedVoters = parseVoterText(allText);
+        // Extract structured data
+        const structured = extractColumnWiseData(allRows);
+        extractedData = structured.voters;
+        detectedColumns = structured.columns;
 
-        if (extractedVoters.length === 0) {
-            pdfStatus.innerHTML = '⚠️ कोई voter data नहीं मिला। PDF format check करें या manual entry करें।';
+        if (extractedData.length === 0) {
+            pdfStatus.innerHTML = '⚠️ कोई data नहीं मिला। PDF format अलग है। Manual entry करें।';
             progressFill.style.width = '100%';
             progressFill.textContent = '0 found';
             progressFill.style.background = '#e69b00';
@@ -697,40 +678,17 @@ async function handlePDFUpload(file) {
             return;
         }
 
-        // Add to database
-        let idx = database.voters.length;
-        extractedVoters.forEach(v => {
-            idx++;
-            database.voters.push({
-                id: generateID(),
-                name: v.name || '',
-                father: v.father || '',
-                house: v.house || '',
-                age: v.age || '',
-                gender: v.gender || 'पुरुष',
-                ward: v.ward || '1',
-                village: v.village || 'सामली पठार',
-                mobile: v.mobile || '',
-                epic: v.epic || generateEPIC(v.ward || '1', idx)
-            });
-        });
+        // Show column mapping
+        renderColumnMapping(detectedColumns);
 
-        saveDatabase();
-        renderAll();
+        // Show preview
+        renderPreview(extractedData);
 
         progressFill.style.width = '100%';
         progressFill.textContent = '100%';
-        progressFill.style.background = 'linear-gradient(90deg,#075e36,#10a95b)';
-        pdfStatus.innerHTML = `✅ ${extractedVoters.length} voters successfully extract हो गए!`;
+        pdfStatus.innerHTML = `✅ ${extractedData.length} records मिले! ${detectedColumns.length} columns detected.`;
 
-        showToast(`✅ ${extractedVoters.length} voters मिले`, 'success');
-
-        // Auto download Excel
-        setTimeout(() => {
-            if (confirm(`✅ ${extractedVoters.length} voters मिले।\n\nExcel file download करें?`)) {
-                exportVotersToExcel();
-            }
-        }, 500);
+        showToast(`✅ ${extractedData.length} records मिले`, 'success');
 
         setTimeout(() => {
             progressBar.style.display = 'none';
@@ -741,104 +699,293 @@ async function handlePDFUpload(file) {
         console.error(err);
         progressFill.style.background = '#c62828';
         progressFill.textContent = 'Error';
-        pdfStatus.innerHTML = '❌ PDF पढ़ने में error: ' + err.message;
+        pdfStatus.innerHTML = '❌ Error: ' + err.message;
         showToast('❌ PDF read error', 'error');
     }
 }
 
 // ============================================================
-// PARSE VOTER TEXT (Smart extraction)
+// COLUMN-WISE EXTRACTION LOGIC
 // ============================================================
-function parseVoterText(text) {
-    const voters = [];
-    // Normalize text
-    let cleaned = text.replace(/\s+/g, ' ').trim();
-    
-    // Split into lines by common patterns
-    // Try to find voter blocks: name + father + house + age
-    // Common pattern in electoral rolls:
-    // SNo | EPIC | Name | Father | House | Age | Gender
-    
-    // Detect ward number from text
-    let wardMatch = text.match(/वार्ड\s*(?:संख्या|No\.?)?\s*[:\-]?\s*(\d+)/i);
-    const defaultWard = wardMatch ? wardMatch[1] : "1";
-    
-    // Try to split by serial numbers (1, 2, 3...) followed by data
-    // Since PDF text extraction may not preserve lines well, we try regex
-    const lines = text.split(/\n+/).map(l => l.trim()).filter(l => l.length > 5);
-    
-    // Pattern 1: Look for name + father pairs
-    // Hindi names often end with common suffixes
-    const namePattern = /([\u0900-\u097F\s]+?)\s+(?:पिता|पति|Father|Husband)[\s:]*([\u0900-\u097F\s]+)/gi;
-    
-    let match;
-    while ((match = namePattern.exec(cleaned)) !== null) {
-        const name = match[1].trim();
-        const father = match[2].trim().split(/\s{2,}/)[0];
-        if (name.length > 2 && name.length < 60 && father.length > 2) {
-            voters.push({
-                name: name,
-                father: father,
-                ward: defaultWard,
-                gender: guessGender(name),
-                house: '',
-                age: '',
-                village: 'सामली पठार',
-                mobile: ''
+function extractColumnWiseData(rows) {
+    // Hindi column keywords for detection
+    const columnKeywords = {
+        'sno': ['क्र', 'क्रम', 'sno', 'sr', 'serial', 'नं'],
+        'epic': ['epic', 'एपिक', 'voter id', 'मतदाता', 'id'],
+        'name': ['नाम', 'name', 'मतदाता का नाम', 'voter name'],
+        'father': ['पिता', 'पति', 'father', 'husband', 'पिता का नाम'],
+        'house': ['मकान', 'घर', 'house', 'house no', 'मकान सं'],
+        'age': ['आयु', 'उम्र', 'age', 'वर्ष'],
+        'gender': ['लिंग', 'gender', 'sex', 'पुरुष', 'महिला'],
+        'ward': ['वार्ड', 'ward', 'ward no'],
+        'village': ['गाँव', 'गांव', 'village', 'मोहल्ला', 'नगर'],
+        'mobile': ['मोबाइल', 'mobile', 'फोन', 'phone', 'contact', 'संपर्क']
+    };
+
+    // Try to detect header row
+    let headerRow = null;
+    let headerIndex = -1;
+
+    for (let i = 0; i < Math.min(rows.length, 20); i++) {
+        const rowText = rows[i].text.toLowerCase();
+        let matches = 0;
+        Object.values(columnKeywords).forEach(kws => {
+            kws.forEach(kw => {
+                if (rowText.includes(kw.toLowerCase())) matches++;
             });
+        });
+        if (matches >= 3) {
+            headerRow = rows[i];
+            headerIndex = i;
+            break;
         }
     }
+
+    // Now extract data rows
+    const voters = [];
     
-    // If no results, try line-by-line parsing
-    if (voters.length === 0) {
-        lines.forEach((line, i) => {
-            // Match: number name father age
-            const parts = line.split(/\s{2,}/);
-            if (parts.length >= 2) {
-                const nameMatch = parts.find(p => /[\u0900-\u097F]/.test(p) && p.length > 2 && p.length < 50);
-                if (nameMatch) {
-                    voters.push({
-                        name: nameMatch.trim(),
-                        father: parts[1] ? parts[1].trim() : '',
-                        ward: defaultWard,
-                        gender: guessGender(nameMatch),
-                        house: '',
-                        age: '',
-                        village: 'सामली पठार',
-                        mobile: ''
-                    });
-                }
-            }
+    // Pattern for Hindi names (Devanagari)
+    const hindiPattern = /[\u0900-\u097F]+/g;
+    
+    // Find data rows (after header)
+    const dataRows = headerIndex >= 0 ? rows.slice(headerIndex + 1) : rows;
+
+    dataRows.forEach(row => {
+        // Get all Hindi text items with their X positions
+        const hindiItems = row.items.filter(item => 
+            item.text && /[\u0900-\u097F]/.test(item.text) && item.text.length > 1
+        );
+
+        if (hindiItems.length === 0) return;
+
+        // Extract numbers
+        const numbers = row.items
+            .filter(item => /^\d+$/.test(item.text))
+            .map(item => parseInt(item.text));
+
+        // Identify name (longest Hindi text, typically first meaningful name)
+        const sortedHindi = [...hindiItems].sort((a, b) => b.text.length - a.text.length);
+        
+        // Try to identify name and father
+        // Names typically 2-4 words, father's name similar
+        let name = '';
+        let father = '';
+        
+        if (hindiItems.length >= 2) {
+            // Sort by X position (left to right)
+            const sortedByX = [...hindiItems].sort((a, b) => a.x - b.x);
+            name = sortedByX[0].text;
+            father = sortedByX[1] ? sortedByX[1].text : '';
+        } else if (hindiItems.length === 1) {
+            name = hindiItems[0].text;
+        }
+
+        if (!name || name.length < 2) return;
+
+        // Detect age (typically 18-110)
+        let age = '';
+        const ageCandidate = numbers.find(n => n >= 18 && n <= 110);
+        if (ageCandidate) age = ageCandidate;
+
+        // Detect house number (usually 1-4 digits)
+        let house = '';
+        const houseCandidate = numbers.find(n => n > 0 && n < 10000 && n !== ageCandidate);
+        if (houseCandidate) house = String(houseCandidate);
+
+        // Detect gender
+        let gender = 'पुरुष';
+        const rowLower = row.text.toLowerCase();
+        if (rowLower.includes('महिला') || rowLower.includes('female') || rowLower.includes('स्त्री')) {
+            gender = 'महिला';
+        } else if (rowLower.includes('पुरुष') || rowLower.includes('male') || rowLower.includes('पु')) {
+            gender = 'पुरुष';
+        } else {
+            // Guess from name
+            const femaleSuffixes = ['बाई', 'देवी', 'कुमारी', 'बाला', 'लता', 'माला', 'रानी', 'प्रिया'];
+            if (femaleSuffixes.some(s => name.includes(s))) gender = 'महिला';
+        }
+
+        // Detect EPIC (pattern: 3 letters + digits)
+        let epic = '';
+        const epicMatch = row.text.match(/[A-Z]{3}\d{6,7}/);
+        if (epicMatch) epic = epicMatch[0];
+
+        // Detect mobile (10 digits starting with 6-9)
+        let mobile = '';
+        const mobileMatch = row.text.match(/[6-9]\d{9}/);
+        if (mobileMatch) mobile = mobileMatch[0];
+
+        // Ward detection
+        let ward = '1';
+        const wardMatch = row.text.match(/वार्ड\s*(\d+)/i);
+        if (wardMatch) ward = wardMatch[1];
+
+        voters.push({
+            epic: epic,
+            name: name,
+            father: father,
+            house: house,
+            age: age,
+            gender: gender,
+            ward: ward,
+            village: 'सामली पठार',
+            mobile: mobile,
+            _raw: row.text
         });
-    }
-    
-    return voters.slice(0, 2000); // limit
-}
+    });
 
-function guessGender(name) {
-    // Common female suffixes in Hindi
-    const femaleSuffixes = ['बाई', 'देवी', 'कुमारी', 'बाला', 'लता', 'माला', 'रानी', 'प्रिया', 'सीता', 'गीता', 'राधा', 'लक्ष्मी', 'सरस्वती', 'पार्वती'];
-    const maleSuffixes = ['लाल', 'राम', 'कुमार', 'सिंह', 'चंद', 'प्रसाद', 'नाथ', 'दास', 'भाई'];
-    
-    for (const s of femaleSuffixes) {
-        if (name.includes(s)) return 'महिला';
-    }
-    for (const s of maleSuffixes) {
-        if (name.includes(s)) return 'पुरुष';
-    }
-    return 'पुरुष';
+    // Remove duplicates (by name + father)
+    const seen = new Set();
+    const unique = voters.filter(v => {
+        const key = v.name + '|' + v.father;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+
+    // Detected columns summary
+    const columns = [
+        { name: 'EPIC ID', key: 'epic', detected: unique.some(v => v.epic) },
+        { name: 'नाम (Name)', key: 'name', detected: unique.some(v => v.name) },
+        { name: 'पिता/पति (Father)', key: 'father', detected: unique.some(v => v.father) },
+        { name: 'मकान (House)', key: 'house', detected: unique.some(v => v.house) },
+        { name: 'आयु (Age)', key: 'age', detected: unique.some(v => v.age) },
+        { name: 'लिंग (Gender)', key: 'gender', detected: unique.some(v => v.gender) },
+        { name: 'वार्ड (Ward)', key: 'ward', detected: true },
+        { name: 'गाँव (Village)', key: 'village', detected: true },
+        { name: 'मोबाइल (Mobile)', key: 'mobile', detected: unique.some(v => v.mobile) }
+    ];
+
+    return { voters: unique, columns };
 }
 
 // ============================================================
-// EXCEL EXPORT
+// RENDER COLUMN MAPPING
 // ============================================================
-function exportVotersToExcel() {
-    if (database.voters.length === 0) {
-        showToast('❌ कोई voter data नहीं है', 'error');
+function renderColumnMapping(columns) {
+    const panel = document.getElementById("columnMapPanel");
+    const list = document.getElementById("columnMapList");
+    panel.style.display = 'block';
+    
+    let html = '';
+    columns.forEach(col => {
+        const status = col.detected ? '✅' : '⚠️';
+        const color = col.detected ? '#075e36' : '#e69b00';
+        html += `<div class="col-row">
+            <label>${status} ${col.name}</label>
+            <span style="color:${color};font-size:13px;">${col.detected ? 'Data मिला' : 'Data नहीं मिला'}</span>
+        </div>`;
+    });
+    list.innerHTML = html;
+}
+
+// ============================================================
+// RENDER PREVIEW
+// ============================================================
+function renderPreview(voters) {
+    const panel = document.getElementById("previewPanel");
+    panel.style.display = 'block';
+    
+    document.getElementById("previewCount").textContent = 
+        `कुल ${voters.length} records — पहले ${Math.min(100, voters.length)} दिखा रहे हैं`;
+
+    const head = document.getElementById("previewHead");
+    head.innerHTML = `
+        <tr>
+            <th>क्र.</th>
+            <th>EPIC ID</th>
+            <th>नाम</th>
+            <th>पिता/पति</th>
+            <th>मकान</th>
+            <th>आयु</th>
+            <th>लिंग</th>
+            <th>वार्ड</th>
+            <th>गाँव</th>
+            <th>मोबाइल</th>
+        </tr>
+    `;
+
+    const body = document.getElementById("previewBody");
+    body.innerHTML = '';
+    voters.slice(0, 100).forEach((v, i) => {
+        body.innerHTML += `<tr>
+            <td>${i+1}</td>
+            <td><span class="badge">${escapeHTML(v.epic || '-')}</span></td>
+            <td><strong>${escapeHTML(v.name)}</strong></td>
+            <td>${escapeHTML(v.father || '-')}</td>
+            <td>${escapeHTML(v.house || '-')}</td>
+            <td>${escapeHTML(v.age || '-')}</td>
+            <td>${escapeHTML(v.gender || '-')}</td>
+            <td>${escapeHTML(v.ward || '-')}</td>
+            <td>${escapeHTML(v.village || '-')}</td>
+            <td>${v.mobile ? '📱 ' + escapeHTML(v.mobile) : '-'}</td>
+        </tr>`;
+    });
+}
+
+function clearPreview() {
+    extractedData = [];
+    detectedColumns = [];
+    document.getElementById("columnMapPanel").style.display = 'none';
+    document.getElementById("previewPanel").style.display = 'none';
+    document.getElementById("pdfStatus").innerHTML = '';
+    showToast('❌ Preview clear', 'info');
+}
+
+// ============================================================
+// DOWNLOAD EXTRACTED EXCEL (Column-wise)
+// ============================================================
+function downloadExtractedExcel() {
+    if (extractedData.length === 0) {
+        showToast('❌ कोई data नहीं', 'error');
+        return;
+    }
+    exportToExcel(extractedData, 'Extracted_Voters');
+    showToast('✅ Excel download हो गई', 'success');
+}
+
+function saveExtractedToDatabase() {
+    if (extractedData.length === 0) {
+        showToast('❌ कोई data नहीं', 'error');
         return;
     }
     
-    const data = database.voters.map((v, i) => ({
+    let idx = database.voters.length;
+    let added = 0;
+    
+    extractedData.forEach(v => {
+        idx++;
+        database.voters.push({
+            id: generateID(),
+            epic: v.epic || generateEPIC(v.ward || '1', idx),
+            name: v.name || '',
+            father: v.father || '',
+            house: v.house || '',
+            age: v.age || '',
+            gender: v.gender || 'पुरुष',
+            ward: v.ward || '1',
+            village: v.village || 'सामली पठार',
+            mobile: v.mobile || ''
+        });
+        added++;
+    });
+    
+    saveDatabase();
+    renderAll();
+    
+    showToast(`✅ ${added} records database में save हो गए`, 'success');
+    
+    // Clear preview
+    clearPreview();
+    pdfStatus.innerHTML = `✅ ${added} records save हो गए! मतदाता सूची page पर देखें।`;
+}
+
+// ============================================================
+// EXCEL EXPORT (Column-wise with proper headers)
+// ============================================================
+function exportToExcel(voters, fileName) {
+    // Column headers in exact order
+    const data = voters.map((v, i) => ({
         'क्र.सं.': i + 1,
         'EPIC ID': v.epic || '',
         'नाम': v.name || '',
@@ -850,52 +997,37 @@ function exportVotersToExcel() {
         'गाँव': v.village || '',
         'मोबाइल नंबर': v.mobile || ''
     }));
-    
+
     const ws = XLSX.utils.json_to_sheet(data);
-    ws['!cols'] = [
-        {wch: 6}, {wch: 15}, {wch: 25}, {wch: 25},
-        {wch: 12}, {wch: 6}, {wch: 10}, {wch: 10},
-        {wch: 18}, {wch: 15}
-    ];
     
+    // Set column widths
+    ws['!cols'] = [
+        { wch: 6 },   // क्र.सं.
+        { wch: 15 },  // EPIC ID
+        { wch: 25 },  // नाम
+        { wch: 25 },  // पिता/पति
+        { wch: 12 },  // मकान
+        { wch: 6 },   // आयु
+        { wch: 10 },  // लिंग
+        { wch: 8 },   // वार्ड
+        { wch: 18 },  // गाँव
+        { wch: 15 }   // मोबाइल
+    ];
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Voter List');
-    
-    const fileName = `Voter_List_${new Date().toISOString().slice(0,10)}.xlsx`;
-    XLSX.writeFile(wb, fileName);
-    
-    showToast('✅ Excel file download हो गई', 'success');
+
+    const date = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `${fileName}_${date}.xlsx`);
 }
 
-function downloadExcelTemplate() {
-    const template = [
-        {'क्र.सं.': 1, 'EPIC ID': 'RJP01000001', 'नाम': 'राम लाल', 'पिता/पति का नाम': 'माझीरा', 'मकान संख्या': '01', 'आयु': 52, 'लिंग': 'पुरुष', 'वार्ड': '1', 'गाँव': 'सामली पठार', 'मोबाइल नंबर': '9876543210'},
-        {'क्र.सं.': 2, 'EPIC ID': 'RJP01000002', 'नाम': 'रामली बाई', 'पिता/पति का नाम': 'राम लाल', 'मकान संख्या': '01', 'आयु': 50, 'लिंग': 'महिला', 'वार्ड': '1', 'गाँव': 'सामली पठार', 'मोबाइल नंबर': ''}
-    ];
-    const ws = XLSX.utils.json_to_sheet(template);
-    ws['!cols'] = [{wch:6},{wch:15},{wch:25},{wch:25},{wch:12},{wch:6},{wch:10},{wch:10},{wch:18},{wch:15}];
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Template');
-    XLSX.writeFile(wb, 'Voter_Template.xlsx');
-    showToast('📋 Template download हो गया', 'success');
-}
-
-function exportFamiliesToExcel() {
-    if (database.families.length === 0) { showToast('कोई family data नहीं', 'error'); return; }
-    const data = database.families.map((f, i) => ({
-        'क्र.सं.': i+1,
-        'परिवार प्रमुख': f.head,
-        'मोबाइल': f.mobile,
-        'वार्ड': f.ward,
-        'सदस्य': f.members,
-        'ग्राम': f.village,
-        'नोट': f.note
-    }));
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Families');
-    XLSX.writeFile(wb, 'Families.xlsx');
-    showToast('✅ Excel download', 'success');
+function exportVotersToExcel() {
+    if (database.voters.length === 0) {
+        showToast('❌ कोई voter data नहीं', 'error');
+        return;
+    }
+    exportToExcel(database.voters, 'Voter_List');
+    showToast('✅ Excel download हो गई', 'success');
 }
 
 function exportVoterCSV() {
@@ -914,34 +1046,49 @@ function exportVoterCSV() {
     showToast('✅ CSV download', 'success');
 }
 
-function exportVoterPDF() {
-    window.print();
+function downloadExcelTemplate() {
+    const template = [
+        { 'क्र.सं.': 1, 'EPIC ID': 'RJP01000001', 'नाम': 'राम लाल', 'पिता/पति का नाम': 'माझीरा', 'मकान संख्या': '01', 'आयु': 52, 'लिंग': 'पुरुष', 'वार्ड': '1', 'गाँव': 'सामली पठार', 'मोबाइल नंबर': '9876543210' },
+        { 'क्र.सं.': 2, 'EPIC ID': 'RJP01000002', 'नाम': 'रामली बाई', 'पिता/पति का नाम': 'राम लाल', 'मकान संख्या': '01', 'आयु': 50, 'लिंग': 'महिला', 'वार्ड': '1', 'गाँव': 'सामली पठार', 'मोबाइल नंबर': '' }
+    ];
+    const ws = XLSX.utils.json_to_sheet(template);
+    ws['!cols'] = [{wch:6},{wch:15},{wch:25},{wch:25},{wch:12},{wch:6},{wch:10},{wch:8},{wch:18},{wch:15}];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Template');
+    XLSX.writeFile(wb, 'Voter_Template.xlsx');
+    showToast('📋 Template download', 'success');
 }
 
 // ============================================================
-// MANUAL VOTER ADD
+// SAMPLE DATA
 // ============================================================
-document.getElementById("manualVoterForm").addEventListener("submit", function(e) {
-    e.preventDefault();
-    const ward = document.getElementById("mVoterWard").value;
-    database.voters.push({
-        id: generateID(),
-        name: document.getElementById("mVoterName").value,
-        father: document.getElementById("mVoterFather").value,
-        epic: document.getElementById("mVoterEpic").value || generateEPIC(ward, database.voters.length + 1),
-        house: document.getElementById("mVoterHouse").value,
-        age: document.getElementById("mVoterAge").value,
-        gender: document.getElementById("mVoterGender").value,
-        ward: ward,
-        village: document.getElementById("mVoterVillage").value,
-        mobile: document.getElementById("mVoterMobile").value
+function loadSampleData() {
+    if (!confirm("Sample data load करें?")) return;
+    const sample = [
+        {name:"राम लाल", father:"माझीरा", house:"01", age:52, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
+        {name:"रामली बाई", father:"राम लाल", house:"01", age:50, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
+        {name:"धनेश्वर", father:"माझीरा", house:"1", age:36, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
+        {name:"तुलसी", father:"धनेश्वर", house:"1", age:35, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
+        {name:"गीता कुमारी", father:"राम लाल", house:"1", age:23, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
+        {name:"शांति कुमारी", father:"राम लाल", house:"01", age:21, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
+        {name:"राधा कुमारी", father:"प्रश्नराज", house:"01", age:20, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
+        {name:"मगवती", father:"मगवती", house:"3", age:62, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
+        {name:"नंदुनी", father:"प्रश्नराज", house:"3", age:62, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
+        {name:"मेरकी", father:"रामलाल", house:"", age:31, gender:"महिला", ward:"1", village:"राणपुर", mobile:""}
+    ];
+    let idx = database.voters.length;
+    sample.forEach(v => {
+        idx++;
+        database.voters.push({
+            ...v,
+            id: generateID(),
+            epic: generateEPIC(v.ward, idx)
+        });
     });
     saveDatabase();
-    this.reset();
-    document.getElementById("mVoterVillage").value = "सामली पठार";
     renderAll();
-    showToast('✅ मतदाता जोड़ दिया', 'success');
-});
+    showToast('✅ Sample data add हो गया', 'success');
+}
 
 // ============================================================
 // VOTERS RENDER
@@ -961,10 +1108,9 @@ function renderVoters() {
         return matchSearch && matchWard;
     });
     
-    // Stats
     const wards = ["1","2","3","4","5","6"];
     let statsHtml = "";
-    let totalM = 0, totalF = 0, totalMobile = 0;
+    let totalM = 0, totalF = 0;
     wards.forEach(w => {
         const wV = database.voters.filter(v => String(v.ward) === w);
         const male = wV.filter(v => v.gender === "पुरुष").length;
@@ -972,7 +1118,7 @@ function renderVoters() {
         totalM += male; totalF += female;
         statsHtml += `<div class="ward-stat-box"><div class="num">${wV.length}</div><div class="label">वार्ड ${w} (पु:${male} / महि:${female})</div></div>`;
     });
-    totalMobile = database.voters.filter(v => v.mobile).length;
+    const totalMobile = database.voters.filter(v => v.mobile).length;
     
     const topStats = document.getElementById("voterTopStats");
     if (topStats) {
@@ -993,7 +1139,7 @@ function renderVoters() {
     table.innerHTML = "";
     if (filtered.length === 0) {
         table.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:30px;color:#888;">
-            ${database.voters.length === 0 ? '📄 PDF upload करें या manual entry करें' : 'कोई मतदाता नहीं मिला'}
+            ${database.voters.length === 0 ? '📄 PDF upload करें' : 'कोई मतदाता नहीं मिला'}
         </td></tr>`;
         return;
     }
@@ -1012,7 +1158,7 @@ function renderVoters() {
             <td>${escapeHTML(v.village || '-')}</td>
             <td>${v.mobile ? '📱 ' + escapeHTML(v.mobile) : '<span style="color:#bbb;">—</span>'}</td>
             <td style="white-space:nowrap;">
-                <button class="btn blue" style="padding:5px 9px;font-size:11px;margin:0;" onclick="openEditModal(${v.id})">✏️ Edit</button>
+                <button class="btn blue" style="padding:5px 9px;font-size:11px;margin:0;" onclick="openEditModal(${v.id})">✏️</button>
                 <button class="btn danger" style="padding:5px 9px;font-size:11px;margin:0;" onclick="deleteVoter(${v.id})">🗑️</button>
             </td>
         </tr>`;
@@ -1025,7 +1171,7 @@ function renderVoters() {
 // ============================================================
 function openEditModal(voterId) {
     const v = database.voters.find(x => x.id === voterId);
-    if (!v) { showToast('❌ Voter नहीं मिला', 'error'); return; }
+    if (!v) { showToast('❌ नहीं मिला', 'error'); return; }
     
     document.getElementById("editVoterId").value = v.id;
     document.getElementById("editName").value = v.name || '';
@@ -1048,14 +1194,14 @@ function closeEditModal() {
 function saveVoterEdit() {
     const id = Number(document.getElementById("editVoterId").value);
     const v = database.voters.find(x => x.id === id);
-    if (!v) { showToast('❌ Voter नहीं मिला', 'error'); return; }
+    if (!v) { showToast('❌ नहीं मिला', 'error'); return; }
     
     const name = document.getElementById("editName").value.trim();
-    if (!name) { showToast('❌ नाम जरूरी है', 'error'); return; }
+    if (!name) { showToast('❌ नाम जरूरी', 'error'); return; }
     
     const mobile = document.getElementById("editMobile").value.trim();
     if (mobile && !/^\d{10}$/.test(mobile)) {
-        showToast('❌ मोबाइल 10 अंकों का होना चाहिए', 'error');
+        showToast('❌ मोबाइल 10 अंक', 'error');
         return;
     }
     
@@ -1076,20 +1222,19 @@ function saveVoterEdit() {
 }
 
 function deleteVoter(id) {
-    if (!confirm("इस मतदाता को delete करें?")) return;
+    if (!confirm("Delete करें?")) return;
     database.voters = database.voters.filter(v => v.id !== id);
     saveDatabase();
     renderAll();
-    showToast('🗑️ Delete हो गया', 'warning');
+    showToast('🗑️ Delete', 'warning');
 }
 
-// Close modal on outside click
 document.getElementById("editModal").addEventListener("click", function(e) {
     if (e.target === this) closeEditModal();
 });
 
 // ============================================================
-// FAMILY FUNCTIONS
+// FAMILY
 // ============================================================
 function createWardOptions() {
     let count = Number(database.settings.wards) || 6;
@@ -1123,15 +1268,13 @@ document.getElementById("familyForm").addEventListener("submit", function(e) {
     this.reset();
     createWardOptions();
     renderAll();
-    showToast('✅ परिवार जोड़ा गया', 'success');
+    showToast('✅ परिवार जोड़ा', 'success');
 });
 
 function renderFamilies() {
     const el = document.getElementById("familySearch");
     const search = el ? el.value.toLowerCase() : "";
-    const list = database.families.filter(f => 
-        [f.head, f.mobile, f.ward, f.village].join(" ").toLowerCase().includes(search)
-    );
+    const list = database.families.filter(f => [f.head, f.mobile, f.ward, f.village].join(" ").toLowerCase().includes(search));
     const table = document.getElementById("familyTable");
     if (!table) return;
     table.innerHTML = "";
@@ -1167,7 +1310,7 @@ document.getElementById("workForm").addEventListener("submit", function(e) {
     saveDatabase();
     this.reset();
     renderAll();
-    showToast('✅ कार्य जोड़ा गया', 'success');
+    showToast('✅ कार्य जोड़ा', 'success');
 });
 
 function renderWorks() {
@@ -1255,9 +1398,7 @@ function renderSchemes() {
 // ============================================================
 document.getElementById("noticeForm").addEventListener("submit", function(e) {
     e.preventDefault();
-    if (!currentUser || currentUser.role !== "admin") {
-        showToast('केवल Admin', 'error'); return;
-    }
+    if (!currentUser || currentUser.role !== "admin") { showToast('केवल Admin', 'error'); return; }
     database.notices.push({
         id: generateID(),
         title: document.getElementById("noticeTitle").value,
@@ -1298,9 +1439,7 @@ function renderNotices() {
 // ============================================================
 document.getElementById("teamForm").addEventListener("submit", function(e) {
     e.preventDefault();
-    if (!currentUser || currentUser.role !== "admin") {
-        showToast('केवल Admin', 'error'); return;
-    }
+    if (!currentUser || currentUser.role !== "admin") { showToast('केवल Admin', 'error'); return; }
     database.team.push({
         id: generateID(),
         name: document.getElementById("teamName").value,
@@ -1311,7 +1450,7 @@ document.getElementById("teamForm").addEventListener("submit", function(e) {
     saveDatabase();
     this.reset();
     renderAll();
-    showToast('✅ Member जोड़ा', 'success');
+    showToast('✅ जोड़ा', 'success');
 });
 
 function renderTeam() {
@@ -1338,9 +1477,7 @@ function renderTeam() {
 // ============================================================
 document.getElementById("settingsForm").addEventListener("submit", function(e) {
     e.preventDefault();
-    if (!currentUser || currentUser.role !== "admin") {
-        showToast('केवल Admin', 'error'); return;
-    }
+    if (!currentUser || currentUser.role !== "admin") { showToast('केवल Admin', 'error'); return; }
     database.settings = {
         name: document.getElementById("panchayatName").value,
         district: document.getElementById("district").value,
@@ -1349,7 +1486,7 @@ document.getElementById("settingsForm").addEventListener("submit", function(e) {
     };
     saveDatabase();
     renderAll();
-    showToast('⚙️ Save हो गया', 'success');
+    showToast('⚙️ Save', 'success');
 });
 
 function loadSettings() {
@@ -1362,37 +1499,19 @@ function loadSettings() {
 }
 
 // ============================================================
-// DELETE RECORD
+// DELETE
 // ============================================================
 function deleteRecord(type, id) {
     if (!confirm("Delete करें?")) return;
     database[type] = database[type].filter(item => item.id !== id);
     saveDatabase();
     renderAll();
-    showToast('🗑️ Delete हो गया', 'warning');
+    showToast('🗑️ Delete', 'warning');
 }
 
 // ============================================================
-// EXPORT / BACKUP
+// BACKUP
 // ============================================================
-function exportCSV(type) {
-    const data = database[type];
-    if (!data || data.length === 0) { showToast('Data नहीं', 'error'); return; }
-    const keys = Object.keys(data[0]).filter(k => k !== "id");
-    let csv = keys.join(",") + "\n";
-    data.forEach(row => {
-        csv += keys.map(k => '"' + String(row[k] ?? "").replaceAll('"', '""') + '"').join(",") + "\n";
-    });
-    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = type + ".csv";
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('✅ Export हो गया', 'success');
-}
-
 function exportAllData() {
     const all = {
         voters: database.voters,
@@ -1411,7 +1530,7 @@ function exportAllData() {
     a.download = "gram-panchayat-export.json";
     a.click();
     URL.revokeObjectURL(url);
-    showToast('✅ Export हो गया', 'success');
+    showToast('✅ Export', 'success');
 }
 
 function downloadBackup() {
@@ -1422,7 +1541,7 @@ function downloadBackup() {
     a.download = "gram-panchayat-backup.json";
     a.click();
     URL.revokeObjectURL(url);
-    showToast('💾 Backup download', 'success');
+    showToast('💾 Backup', 'success');
 }
 
 function importBackup() {
@@ -1449,7 +1568,7 @@ function importBackup() {
 
 function resetAllData() {
     if (!currentUser || currentUser.role !== "admin") { showToast('केवल Admin', 'error'); return; }
-    if (confirm("⚠️ सारा Data delete होगा। जारी रखें?")) {
+    if (confirm("⚠️ सारा data delete?")) {
         localStorage.removeItem(STORAGE_KEY);
         location.reload();
     }
@@ -1463,8 +1582,8 @@ function updateDashboard() {
     const openComplaints = database.complaints.filter(c => c.status !== "Resolved").length;
     document.getElementById("totalFamilies").innerText = database.families.length;
     document.getElementById("totalResidents").innerText = residents;
+    document.getElementById("totalVoters").innerText = database.voters.length;
     document.getElementById("totalWorks").innerText = database.works.length;
-    document.getElementById("totalComplaints").innerText = openComplaints;
     document.getElementById("reportFamilies").innerText = database.families.length;
     document.getElementById("reportResidents").innerText = residents;
     document.getElementById("reportWorks").innerText = database.works.length;
@@ -1524,33 +1643,6 @@ function toggleDarkMode() {
 if (localStorage.getItem('darkMode') === 'true') {
     document.body.classList.add('dark-mode');
     document.querySelectorAll('.theme-toggle').forEach(b => b.textContent = '☀️');
-}
-
-// ============================================================
-// VOICE SEARCH
-// ============================================================
-function startVoiceSearch(inputId) {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { showToast('❌ Voice supported नहीं', 'error'); return; }
-    const rec = new SR();
-    rec.lang = 'hi-IN';
-    rec.continuous = false;
-    rec.interimResults = false;
-    const btn = document.querySelector(`button[onclick="startVoiceSearch('${inputId}')"]`);
-    if (btn) { btn.classList.add('listening'); btn.textContent = '🔴'; }
-    rec.onresult = e => {
-        const t = e.results[0][0].transcript;
-        document.getElementById(inputId).value = t;
-        document.getElementById(inputId).dispatchEvent(new Event('input'));
-        if (btn) { btn.classList.remove('listening'); btn.textContent = '🎤'; }
-        showToast(`🔊 "${t}"`, 'success');
-    };
-    rec.onerror = () => {
-        if (btn) { btn.classList.remove('listening'); btn.textContent = '🎤'; }
-        showToast('❌ Voice error', 'error');
-    };
-    rec.onend = () => { if (btn) { btn.classList.remove('listening'); btn.textContent = '🎤'; } };
-    rec.start();
 }
 
 // ============================================================
