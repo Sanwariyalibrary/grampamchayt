@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Gram Panchayat Smart Portal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:Arial,"Noto Sans Devanagari",sans-serif;}
 body{background:#f4f7f5;color:#17231b;}
@@ -39,11 +41,12 @@ header p{font-size:13px;margin-top:5px;}
 .btn.secondary{background:#e8f4ed;color:#075e36;}
 .btn.danger{background:#c62828;}
 .btn.warning{background:#e69b00;}
+.btn.blue{background:#1976d2;}
 .table-wrap{overflow:auto;}
-table{width:100%;border-collapse:collapse;min-width:700px;}
-th,td{padding:11px;border-bottom:1px solid #edf0ee;text-align:left;}
-th{background:#edf8f1;position:sticky;top:0;}
-.badge{padding:5px 9px;border-radius:20px;background:#e8f5ed;color:#087b40;font-size:12px;}
+table{width:100%;border-collapse:collapse;min-width:900px;}
+th,td{padding:8px;border-bottom:1px solid #edf0ee;text-align:left;font-size:13px;}
+th{background:#edf8f1;position:sticky;top:0;z-index:5;}
+.badge{padding:4px 8px;border-radius:20px;background:#e8f5ed;color:#087b40;font-size:11px;}
 .toolbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:13px;align-items:center;}
 .toolbar input,.toolbar select{padding:10px;border:1px solid #ccd5cf;border-radius:8px;}
 .notice{background:#fff8df;border-left:4px solid #e0a400;padding:13px;margin:8px 0;border-radius:5px;}
@@ -52,40 +55,57 @@ th{background:#edf8f1;position:sticky;top:0;}
 .ward-stat-box{background:#f0faf4;padding:12px;border-radius:10px;text-align:center;}
 .ward-stat-box .num{font-size:22px;font-weight:bold;color:#075e36;}
 .ward-stat-box .label{font-size:12px;color:#66736b;}
-.table-container{max-height:500px;overflow-y:auto;border:1px solid #e0e8e3;border-radius:8px;}
+.table-container{max-height:550px;overflow-y:auto;border:1px solid #e0e8e3;border-radius:8px;}
 .dark-mode{background:#1a1a2e!important;color:#eee!important;}
 .dark-mode .card,.dark-mode .panel,.dark-mode .login-box{background:#16213e!important;color:#eee!important;}
 .dark-mode .sidebar{background:#16213e!important;border-color:#333!important;}
 .dark-mode .sidebar button{background:#16213e!important;color:#ddd!important;}
 .dark-mode .sidebar button:hover,.dark-mode .sidebar button.active{background:#0f3460!important;color:#fff!important;}
 .dark-mode table th{background:#0f3460!important;color:#fff!important;}
-.dark-mode table td{border-color:#333!important;}
+.dark-mode table td{border-color:#333!important;color:#ddd!important;}
 .dark-mode .notice{background:#1a1a2e!important;border-left-color:#e0a400!important;}
 .dark-mode input,.dark-mode select,.dark-mode textarea{background:#2a2a4a!important;color:#eee!important;border-color:#444!important;}
 .dark-mode .menu{background:#16213e!important;color:#fff!important;}
 .theme-toggle{background:transparent;border:none;color:white;font-size:24px;cursor:pointer;padding:5px 10px;float:right;margin-right:10px;}
-.voice-btn{background:#075e36;color:white;border:none;border-radius:50%;width:40px;height:40px;cursor:pointer;font-size:18px;transition:all 0.3s;}
+.voice-btn{background:#075e36;color:white;border:none;border-radius:50%;width:40px;height:40px;cursor:pointer;font-size:18px;}
 .voice-btn.listening{background:#c62828;animation:pulse 1s infinite;}
 @keyframes pulse{0%{transform:scale(1);}50%{transform:scale(1.1);}100%{transform:scale(1);}}
 .toast{position:fixed;bottom:20px;right:20px;padding:15px 25px;border-radius:10px;color:white;font-weight:bold;z-index:99999;animation:slideIn 0.5s ease;box-shadow:0 4px 15px rgba(0,0,0,0.3);}
 .toast.success{background:#075e36;}
 .toast.error{background:#c62828;}
 .toast.warning{background:#e69b00;}
+.toast.info{background:#1976d2;}
 @keyframes slideIn{from{transform:translateX(100%);opacity:0;}to{transform:translateX(0);opacity:1;}}
 .chart-container{background:white;padding:20px;border-radius:13px;box-shadow:0 2px 9px #0001;margin:15px 0;}
-.dark-mode .chart-container{background:#16213e;}
 .chart-bar{display:flex;align-items:flex-end;gap:10px;height:200px;padding:10px 0;}
 .chart-bar .bar{background:linear-gradient(to top,#075e36,#10a95b);border-radius:5px 5px 0 0;min-height:10px;transition:height 0.5s;}
 .chart-bar .bar-label{text-align:center;font-size:12px;margin-top:5px;}
-.dark-mode .chart-bar .bar-label{color:#ddd;}
-.install-btn{background:#075e36;color:white;border:none;padding:12px 20px;border-radius:8px;cursor:pointer;display:none;}
-.install-btn.show{display:inline-block;}
+.upload-area{border:3px dashed #10a95b;background:#f0faf4;padding:40px 20px;text-align:center;border-radius:15px;cursor:pointer;transition:all 0.3s;margin:15px 0;}
+.upload-area:hover{background:#d9f2e3;border-color:#075e36;}
+.upload-area.dragover{background:#d9f2e3;border-color:#075e36;transform:scale(1.01);}
+.upload-area .icon{font-size:60px;margin-bottom:10px;}
+.upload-area h3{color:#075e36;margin-bottom:8px;}
+.upload-area p{color:#66736b;font-size:14px;}
+.progress-bar{width:100%;height:20px;background:#e0e8e3;border-radius:10px;overflow:hidden;margin:15px 0;}
+.progress-bar .fill{height:100%;background:linear-gradient(90deg,#075e36,#10a95b);width:0%;transition:width 0.3s;display:flex;align-items:center;justify-content:center;color:white;font-size:11px;font-weight:bold;}
+.edit-modal{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:99999;padding:15px;}
+.edit-modal.show{display:flex;}
+.edit-modal-content{background:white;padding:25px;border-radius:15px;max-width:600px;width:100%;max-height:90vh;overflow-y:auto;}
+.edit-modal-content h3{color:#075e36;margin-bottom:15px;border-bottom:2px solid #e0efe7;padding-bottom:10px;}
+.edit-modal-content .grid{grid-template-columns:1fr 1fr;}
+.modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end;}
+.dark-mode .edit-modal-content{background:#16213e;color:#eee;}
+.dark-mode .edit-modal-content h3{color:#4aeba5;border-bottom-color:#333;}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:15px 0;}
+.stat-box{background:linear-gradient(135deg,#075e36,#10a95b);color:white;padding:15px;border-radius:12px;text-align:center;}
+.stat-box .num{font-size:28px;font-weight:bold;}
+.stat-box .lbl{font-size:12px;opacity:0.9;margin-top:4px;}
 @media(max-width:900px){
 .sidebar{position:fixed;left:-260px;top:75px;z-index:500;transition:.3s;background:white;width:250px;}
 .sidebar.open{left:0;}
 .grid{grid-template-columns:1fr;}
+.edit-modal-content .grid{grid-template-columns:1fr;}
 .content{padding:12px;}
-.theme-toggle{font-size:20px;margin-right:5px;}
 }
 @media print{.sidebar,.menu,.toolbar,.btn{display:none!important;}.content{padding:0;}}
 </style>
@@ -128,6 +148,7 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 
 <main class="content">
 
+<!-- DASHBOARD -->
 <section id="dashboard" class="page active">
 <h2>📊 पंचायत Dashboard</h2>
 <div class="cards">
@@ -148,35 +169,80 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 <h3>📢 नवीन सूचनाएँ</h3>
 <div id="dashboardNotices"></div>
 </div>
+</section>
+
+<!-- PDF UPLOAD -->
+<section id="pdfupload" class="page">
+<h2>📄 PDF Upload → Excel (Voter Data)</h2>
 <div class="panel">
-<h3>🏗️ हाल के विकास कार्य</h3>
-<div id="dashboardWorks"></div>
+<p class="small" style="margin-bottom:10px;">PDF file (Voter List) upload करें — Data automatically extract होकर Excel में save हो जाएगा।</p>
+<div class="upload-area" id="uploadArea">
+<div class="icon">📄</div>
+<h3>PDF File यहाँ Drop करें</h3>
+<p>या click करके select करें (Max 20MB)</p>
+<input type="file" id="pdfFileInput" accept=".pdf" style="display:none;">
+</div>
+<div class="progress-bar" id="progressBar" style="display:none;">
+<div class="fill" id="progressFill">0%</div>
+</div>
+<div id="pdfStatus" class="small" style="margin-top:10px;"></div>
+<div style="margin-top:15px;">
+<button class="btn blue" onclick="downloadExcelTemplate()">📋 Excel Template Download</button>
+<button class="btn secondary" onclick="exportVotersToExcel()">📊 मौजूदा Data Export (.xlsx)</button>
+<button class="btn secondary" onclick="exportVoterCSV()">📄 CSV Export</button>
+</div>
+</div>
+
+<div class="panel">
+<h3>📋 मैन्युअल Entry (PDF न हो तो)</h3>
+<form id="manualVoterForm" class="grid">
+<div class="field"><label>नाम *</label><input id="mVoterName" required></div>
+<div class="field"><label>पिता/पति का नाम</label><input id="mVoterFather"></div>
+<div class="field"><label>EPIC ID</label><input id="mVoterEpic"></div>
+<div class="field"><label>मकान संख्या</label><input id="mVoterHouse"></div>
+<div class="field"><label>आयु</label><input id="mVoterAge" type="number"></div>
+<div class="field"><label>लिंग</label>
+<select id="mVoterGender"><option>पुरुष</option><option>महिला</option><option>अन्य</option></select></div>
+<div class="field"><label>वार्ड</label>
+<select id="mVoterWard">
+<option value="1">वार्ड 1</option><option value="2">वार्ड 2</option>
+<option value="3">वार्ड 3</option><option value="4">वार्ड 4</option>
+<option value="5">वार्ड 5</option><option value="6">वार्ड 6</option>
+</select></div>
+<div class="field"><label>गाँव</label><input id="mVoterVillage" value="सामली पठार"></div>
+<div class="field"><label>📱 मोबाइल नंबर</label><input id="mVoterMobile" type="tel" placeholder="10 digit mobile"></div>
+<div><button class="btn" type="submit">➕ मतदाता जोड़ें</button></div>
+</form>
 </div>
 </section>
 
+<!-- VOTERS -->
 <section id="voters" class="page">
 <h2>🗳️ मतदाता सूची (Voter List) 2026</h2>
 <div class="panel">
+<div class="stats-grid" id="voterTopStats"></div>
 <div class="toolbar">
-<input id="voterSearch" placeholder="नाम, पिता/पति, EPIC, मकान संख्या..." oninput="renderVoters()">
+<input id="voterSearch" placeholder="नाम, पिता, EPIC, मोबाइल, मकान..." oninput="renderVoters()">
 <button class="voice-btn" onclick="startVoiceSearch('voterSearch')" title="Voice Search">🎤</button>
 <select id="voterWardFilter" onchange="renderVoters()">
 <option value="">सभी वार्ड</option>
-<option value="1">वार्ड 1</option>
-<option value="2">वार्ड 2</option>
-<option value="3">वार्ड 3</option>
-<option value="4">वार्ड 4</option>
-<option value="5">वार्ड 5</option>
-<option value="6">वार्ड 6</option>
+<option value="1">वार्ड 1</option><option value="2">वार्ड 2</option>
+<option value="3">वार्ड 3</option><option value="4">वार्ड 4</option>
+<option value="5">वार्ड 5</option><option value="6">वार्ड 6</option>
 </select>
-<button class="btn secondary" onclick="exportVoterCSV()">⬇️ CSV</button>
-<button class="btn secondary" onclick="exportVoterPDF()">⬇️ PDF</button>
+<button class="btn secondary" onclick="exportVotersToExcel()">📊 Excel</button>
+<button class="btn secondary" onclick="exportVoterCSV()">📄 CSV</button>
+<button class="btn secondary" onclick="exportVoterPDF()">🖨️ Print</button>
 </div>
 <div class="ward-stats" id="voterStats"></div>
 <div class="table-container">
 <table>
 <thead>
-<tr><th>क्र.सं.</th><th>EPIC ID</th><th>नाम</th><th>पिता/पति का नाम</th><th>मकान सं.</th><th>आयु</th><th>लिंग</th><th>वार्ड</th><th>गाँव</th></tr>
+<tr>
+<th>क्र.</th><th>EPIC ID</th><th>नाम</th><th>पिता/पति</th>
+<th>मकान</th><th>आयु</th><th>लिंग</th><th>वार्ड</th>
+<th>गाँव</th><th>📱 मोबाइल</th><th>Action</th>
+</tr>
 </thead>
 <tbody id="voterTable"></tbody>
 </table>
@@ -184,13 +250,14 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 </div>
 </section>
 
+<!-- FAMILIES -->
 <section id="families" class="page">
 <h2>👥 परिवार / निवासी</h2>
 <div class="panel">
 <h3>नया परिवार जोड़ें</h3>
 <form id="familyForm" class="grid">
 <div class="field"><label>परिवार प्रमुख</label><input id="familyHead" required></div>
-<div class="field"><label>मोबाइल नंबर</label><input id="familyMobile" inputmode="numeric"></div>
+<div class="field"><label>मोबाइल नंबर</label><input id="familyMobile" type="tel"></div>
 <div class="field"><label>वार्ड</label><select id="familyWard"></select></div>
 <div class="field"><label>परिवार के सदस्य</label><input id="familyMembers" type="number" min="1" value="1"></div>
 <div class="field"><label>ग्राम / मोहल्ला</label><input id="familyVillage"></div>
@@ -201,8 +268,7 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 <div class="panel">
 <div class="toolbar">
 <input id="familySearch" placeholder="नाम, मोबाइल, वार्ड..." oninput="renderFamilies()">
-<button class="voice-btn" onclick="startVoiceSearch('familySearch')">🎤</button>
-<button class="btn secondary" onclick="exportCSV('families')">⬇️ CSV</button>
+<button class="btn secondary" onclick="exportFamiliesToExcel()">📊 Excel</button>
 </div>
 <div class="table-container">
 <table>
@@ -213,6 +279,7 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 </div>
 </section>
 
+<!-- WORKS -->
 <section id="works" class="page">
 <h2>🏗️ विकास कार्य</h2>
 <div class="panel">
@@ -221,10 +288,7 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 <div class="field"><label>स्थान</label><input id="workLocation"></div>
 <div class="field"><label>अनुमानित लागत ₹</label><input id="workCost" type="number"></div>
 <div class="field"><label>स्थिति</label>
-<select id="workStatus">
-<option>प्रस्तावित</option><option>स्वीकृत</option>
-<option>निर्माणाधीन</option><option>पूर्ण</option>
-</select></div>
+<select id="workStatus"><option>प्रस्तावित</option><option>स्वीकृत</option><option>निर्माणाधीन</option><option>पूर्ण</option></select></div>
 <div class="field"><label>विवरण</label><textarea id="workDescription"></textarea></div>
 <div><button class="btn" type="submit">➕ कार्य जोड़ें</button></div>
 </form>
@@ -239,17 +303,15 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 </div>
 </section>
 
+<!-- COMPLAINTS -->
 <section id="complaints" class="page">
 <h2>📝 शिकायत / समस्या</h2>
 <div class="panel">
 <form id="complaintForm" class="grid">
 <div class="field"><label>नाम</label><input id="complaintName" required></div>
-<div class="field"><label>मोबाइल</label><input id="complaintMobile"></div>
+<div class="field"><label>मोबाइल</label><input id="complaintMobile" type="tel"></div>
 <div class="field"><label>समस्या</label>
-<select id="complaintType">
-<option>पानी</option><option>सड़क</option><option>नाली</option>
-<option>बिजली</option><option>स्ट्रीट लाइट</option><option>स्वच्छता</option><option>अन्य</option>
-</select></div>
+<select id="complaintType"><option>पानी</option><option>सड़क</option><option>नाली</option><option>बिजली</option><option>स्ट्रीट लाइट</option><option>स्वच्छता</option><option>अन्य</option></select></div>
 <div class="field"><label>वार्ड</label><select id="complaintWard"></select></div>
 <div class="field"><label>समस्या का विवरण</label><textarea id="complaintText"></textarea></div>
 <div><button class="btn" type="submit">📩 शिकायत दर्ज करें</button></div>
@@ -265,11 +327,13 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 </div>
 </section>
 
+<!-- SCHEMES -->
 <section id="schemes" class="page">
 <h2>📋 सरकारी योजनाएँ</h2>
 <div class="cards" id="schemeCards"></div>
 </section>
 
+<!-- NOTICES -->
 <section id="notices" class="page">
 <h2>🔔 पंचायत Notifications</h2>
 <div class="panel">
@@ -283,13 +347,14 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 <div class="panel" id="noticeList"></div>
 </section>
 
+<!-- TEAM -->
 <section id="team" class="page">
 <h2>👨‍💼 Staff / Team</h2>
 <div class="panel">
 <form id="teamForm" class="grid">
 <div class="field"><label>नाम</label><input id="teamName" required></div>
 <div class="field"><label>पद</label><input id="teamRole"></div>
-<div class="field"><label>मोबाइल</label><input id="teamMobile"></div>
+<div class="field"><label>मोबाइल</label><input id="teamMobile" type="tel"></div>
 <div class="field"><label>क्षेत्र</label><input id="teamArea"></div>
 <div><button class="btn" type="submit">➕ Member जोड़ें</button></div>
 </form>
@@ -304,6 +369,7 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 </div>
 </section>
 
+<!-- REPORTS -->
 <section id="reports" class="page">
 <h2>📊 Reports</h2>
 <div class="cards">
@@ -316,9 +382,11 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 <button class="btn" onclick="window.print()">🖨️ Print Report</button>
 <button class="btn secondary" onclick="downloadBackup()">💾 JSON Backup</button>
 <button class="btn secondary" onclick="exportAllData()">📤 Export All Data</button>
+<button class="btn blue" onclick="exportVotersToExcel()">📊 Voter Excel</button>
 </div>
 </section>
 
+<!-- SETTINGS -->
 <section id="settings" class="page">
 <h2>⚙️ पंचायत Settings</h2>
 <div class="panel">
@@ -332,940 +400,64 @@ Staff: <strong>staff</strong> / <strong>staff123</strong>
 </div>
 <div class="panel">
 <h3>⚠️ Data Management</h3>
-<button class="btn danger" onclick="resetAllData()">सारा Demo Data Delete</button>
+<button class="btn danger" onclick="resetAllData()">सारा Data Delete</button>
 <button class="btn secondary" onclick="importBackup()">📥 Import Backup</button>
-</div>
-<div class="panel">
-<h3>📱 PWA Installation</h3>
-<button id="installBtn" class="install-btn" onclick="installPWA()">📲 Install App</button>
-<p class="small">इस App को अपने Mobile/Desktop पर Install करें</p>
+<button class="btn warning" onclick="loadDemoVoters()">🔄 Demo Voters Load</button>
 </div>
 </section>
 
 </main>
 </div>
 
+<!-- EDIT MODAL -->
+<div class="edit-modal" id="editModal">
+<div class="edit-modal-content">
+<h3>✏️ Edit Voter</h3>
+<input type="hidden" id="editVoterId">
+<div class="grid">
+<div class="field"><label>नाम *</label><input id="editName" required></div>
+<div class="field"><label>पिता/पति</label><input id="editFather"></div>
+<div class="field"><label>EPIC ID</label><input id="editEpic"></div>
+<div class="field"><label>मकान संख्या</label><input id="editHouse"></div>
+<div class="field"><label>आयु</label><input id="editAge" type="number"></div>
+<div class="field"><label>लिंग</label>
+<select id="editGender"><option>पुरुष</option><option>महिला</option><option>अन्य</option></select></div>
+<div class="field"><label>वार्ड</label>
+<select id="editWard">
+<option value="1">वार्ड 1</option><option value="2">वार्ड 2</option>
+<option value="3">वार्ड 3</option><option value="4">वार्ड 4</option>
+<option value="5">वार्ड 5</option><option value="6">वार्ड 6</option>
+</select></div>
+<div class="field"><label>गाँव</label><input id="editVillage"></div>
+<div class="field"><label>📱 मोबाइल नंबर</label><input id="editMobile" type="tel" placeholder="10 digit"></div>
+</div>
+<div class="modal-actions">
+<button class="btn secondary" onclick="closeEditModal()">❌ Cancel</button>
+<button class="btn" onclick="saveVoterEdit()">💾 Save Changes</button>
+</div>
+</div>
+</div>
+
 <script>
 // ============================================================
-// LOGIN CREDENTIALS
+// PDF.js Worker Setup
+// ============================================================
+if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+// ============================================================
+// LOGIN
 // ============================================================
 const USERS = {
     admin: { password: "admin123", role: "admin", name: "Panchayat Admin" },
     staff: { password: "staff123", role: "staff", name: "Panchayat Staff" }
 };
 
-// ============================================================
-// DATABASE STORAGE
-// ============================================================
-const STORAGE_KEY = "gram_panchayat_smart_v3";
-
-function generateEPIC(ward, index) {
-    return "RJP" + String(ward).padStart(2, '0') + String(index).padStart(6, '0');
-}
+const STORAGE_KEY = "gram_panchayat_smart_v4";
 
 // ============================================================
-// GENERATE VOTER DATA (Ward 1-6)
-// ============================================================
-function generateVoterData() {
-    const ward1 = [
-        {name:"राम लाल",father:"माझीरा बी मीमा",house:"01",age:52,gender:"पुरुष"},
-        {name:"रामली बाई",father:"राम लाल",house:"01",age:50,gender:"महिला"},
-        {name:"धनेश्वर",father:"माझीरा",house:"1",age:36,gender:"पुरुष"},
-        {name:"तुलसी",father:"धनेश्वर",house:"1",age:35,gender:"महिला"},
-        {name:"गीता कुमारी मीमा",father:"राम लाल मीमा",house:"1",age:23,gender:"महिला"},
-        {name:"शांति कुमारी मीमा",father:"राम लाल मीमां",house:"01",age:21,gender:"महिला"},
-        {name:"राधा कुमारी मीमा",father:"प्रश्नराज",house:"01",age:20,gender:"महिला"},
-        {name:"मगवती",father:"मगवती",house:"3",age:62,gender:"पुरुष"},
-        {name:"नंदुनी",father:"प्रश्नराज",house:"3",age:62,gender:"महिला"},
-        {name:"मेरकी",father:"रामलाल",house:"",age:31,gender:"महिला"},
-        {name:"सिवलाल",father:"मनवती",house:"3",age:30,gender:"पुरुष"},
-        {name:"कन्हैयालाल",father:"मनवती",house:"3",age:30,gender:"पुरुष"},
-        {name:"रेखा",father:"सिवलाल",house:"3",age:28,gender:"महिला"},
-        {name:"गणेश लाल",father:"मनवती लाल",house:"26",age:26,gender:"पुरुष"},
-        {name:"शारदा कुमारी",father:"गणेश लाल",house:"03",age:24,gender:"महिला"},
-        {name:"सविता",father:"कन्हैया लाल",house:"03",age:24,gender:"महिला"},
-        {name:"रकमा",father:"देवेबी",house:"4",age:60,gender:"पुरुष"},
-        {name:"हिंकी",father:"रकमा",house:"4",age:60,gender:"महिला"},
-        {name:"कुलचन्द",father:"मनवती",house:"4",age:59,gender:"पुरुष"},
-        {name:"कैलास",father:"मनवती",house:"4",age:40,gender:"पुरुष"},
-        {name:"काली",father:"कैलास",house:"4",age:39,gender:"महिला"},
-        {name:"रामलाल",father:"रमलाल",house:"4",age:36,gender:"पुरुष"},
-        {name:"नाभुलाल",father:"मनवती",house:"4",age:36,gender:"पुरुष"},
-        {name:"प्रेमवाई",father:"रमलाल",house:"4",age:36,gender:"महिला"},
-        {name:"नारणी",father:"नाथूलाल",house:"4",age:35,gender:"महिला"},
-        {name:"ईश्वरलाल",father:"रकमा",house:"4",age:32,gender:"पुरुष"},
-        {name:"खातु राम",father:"हुलचन्द",house:"4",age:31,gender:"पुरुष"},
-        {name:"पारसलम",father:"कुलचंद",house:"4",age:30,gender:"पुरुष"},
-        {name:"पिंकी कुमारी मीणा",father:"पारसलम मीणा",house:"4",age:29,gender:"महिला"},
-        {name:"गोरखन",father:"स्नातक",house:"5",age:62,gender:"पुरुष"},
-        {name:"केशरी",father:"गोरखन",house:"5",age:60,gender:"महिला"},
-        {name:"धनराज",father:"मेचरी",house:"6",age:57,gender:"पुरुष"},
-        {name:"सीता",father:"धनराज",house:"6",age:56,gender:"महिला"},
-        {name:"गौतम लाल मीना",father:"स्नातक",house:"6",age:31,gender:"पुरुष"},
-        {name:"संतोष कुमारी मीना",father:"गौतम लाल मीना",house:"06",age:30,gender:"महिला"},
-        {name:"नारायणलाल",father:"स्नातक",house:"6",age:28,gender:"पुरुष"},
-        {name:"कमला शंकर",father:"स्नातक",house:"06",age:25,gender:"पुरुष"},
-        {name:"गंगा कुमारी मीणा",father:"स्नातक राज",house:"6",age:22,gender:"महिला"},
-        {name:"जमना",father:"मेचरी",house:"7",age:87,gender:"महिला"},
-        {name:"पार्वती मीणा",father:"हुल चंद मीणा",house:"7",age:29,gender:"महिला"},
-        {name:"देवी लाल",father:"सूरजी",house:"9",age:62,gender:"पुरुष"},
-        {name:"केशरी",father:"देवी लाल",house:"9",age:60,gender:"महिला"},
-        {name:"नायुराम",father:"सूरजी",house:"9",age:57,gender:"पुरुष"},
-        {name:"सवारी",father:"नायुराम",house:"9",age:55,gender:"महिला"},
-        {name:"सुगना",father:"देवी लाल",house:"9",age:55,gender:"महिला"},
-        {name:"सीमा कुमारी",father:"स्नातक",house:"9",age:34,gender:"महिला"},
-        {name:"शंकरलाल",father:"सेवीलाल",house:"9",age:34,gender:"पुरुष"},
-        {name:"लालचन्द",father:"स्नातक",house:"9",age:31,gender:"पुरुष"},
-        {name:"पिन्हुलाल",father:"सेवीलाल",house:"9",age:28,gender:"पुरुष"},
-        {name:"विष्णु लाल",father:"स्नातक मीना",house:"9",age:26,gender:"पुरुष"},
-        {name:"लाली कुमारी मीना",father:"शंकर लाल मीना",house:"9",age:26,gender:"महिला"},
-        {name:"गोतम",father:"चोखा",house:"10",age:62,gender:"पुरुष"},
-        {name:"बची",father:"गोतम",house:"10",age:60,gender:"महिला"},
-        {name:"रामलाल",father:"गोतम लाल",house:"10",age:30,gender:"पुरुष"},
-        {name:"काली मीना",father:"गोतम मीना",house:"10",age:23,gender:"महिला"},
-        {name:"लाली कुमारी मीना",father:"गोतम लाल",house:"10",age:21,gender:"महिला"},
-        {name:"विजय लाल",father:"गोतम",house:"14",age:57,gender:"पुरुष"},
-        {name:"धापुडी",father:"विजय लाल",house:"14",age:54,gender:"महिला"},
-        {name:"नवीन",father:"विजय लाल",house:"14",age:26,gender:"पुरुष"},
-        {name:"भूत्की मीना",father:"नवीन मीना",house:"14",age:24,gender:"महिला"},
-        {name:"शुक्ली",father:"फुलिया",house:"15",age:57,gender:"महिला"},
-        {name:"लक्ष्मण",father:"कालू",house:"15",age:57,gender:"पुरुष"},
-        {name:"बरखा",father:"लक्ष्मण",house:"15",age:54,gender:"महिला"},
-        {name:"जीवन लाल मीना",father:"लक्ष्मण लाल",house:"15",age:34,gender:"पुरुष"},
-        {name:"मेहम कुमार",father:"लक्ष्मणलाल",house:"15",age:32,gender:"पुरुष"},
-        {name:"लाहू कुमारी मीना",father:"जीवन लाल",house:"15",age:29,gender:"महिला"},
-        {name:"देवेन्द्र",father:"कालू",house:"16",age:64,gender:"पुरुष"},
-        {name:"सीला",father:"देवेन्द्र",house:"16",age:62,gender:"महिला"},
-        {name:"प्रकाश चंद्र मीना",father:"देवेन्द्र",house:"16",age:21,gender:"पुरुष"},
-        {name:"शंकरनाथ",father:"लक्ष्मण",house:"17",age:64,gender:"पुरुष"},
-        {name:"नारायण लाल",father:"कालू",house:"17",age:54,gender:"पुरुष"},
-        {name:"जमना",father:"नारायण लाल",house:"17",age:53,gender:"महिला"},
-        {name:"हुलचंद",father:"सारायणलाल",house:"17",age:31,gender:"पुरुष"},
-        {name:"राजू लाल",father:"सारायण लाल मीना",house:"17",age:24,gender:"पुरुष"},
-        {name:"कृष्ण गोपाल मीना",father:"सारायण लाल मीना",house:"17",age:21,gender:"पुरुष"},
-        {name:"धनकी",father:"कालू",house:"18",age:107,gender:"महिला"},
-        {name:"मोतडी",father:"बच्चा राम",house:"18",age:62,gender:"महिला"},
-        {name:"गणेशलाल",father:"कलाराम",house:"18",age:28,gender:"पुरुष"},
-        {name:"लिलता कुमारी",father:"गणेश लाल",house:"18",age:27,gender:"महिला"},
-        {name:"गंगाराम",father:"कालू",house:"19",age:70,gender:"पुरुष"},
-        {name:"धर्म",father:"गंगाराम",house:"19",age:67,gender:"महिला"},
-        {name:"गोती",father:"गोतमलाल",house:"19",age:40,gender:"महिला"},
-        {name:"गौतम लाल",father:"गाड्युराम",house:"19",age:40,gender:"पुरुष"},
-        {name:"गंगा",father:"नायूलाल",house:"19",age:36,gender:"महिला"},
-        {name:"भागवंती",father:"गौतमलाल",house:"19",age:36,gender:"महिला"},
-        {name:"नायुलाल",father:"गंगुराम",house:"19",age:36,gender:"पुरुष"},
-        {name:"रीना कुमारी मीणा",father:"गौतम लाल मीणा",house:"19",age:21,gender:"महिला"},
-        {name:"राजकुमार मीना",father:"गौतम लाल",house:"19",age:19,gender:"पुरुष"},
-        {name:"भेरा",father:"गाड्यु",house:"24",age:72,gender:"पुरुष"},
-        {name:"श्रीरजमल",father:"भेरा",house:"24",age:49,gender:"पुरुष"},
-        {name:"युवती",father:"श्रीरजमल",house:"24",age:41,gender:"महिला"},
-        {name:"देवीलाल",father:"श्रीरजी",house:"24",age:30,gender:"पुरुष"},
-        {name:"इन्द्रा मीणा",father:"नंद लाल मीणा",house:"24",age:25,gender:"महिला"},
-        {name:"आभा कुमारी मीणा",father:"देवी लाल मीणा",house:"24",age:24,gender:"महिला"},
-        {name:"नंद लाल मीणा",father:"श्रीरज मल",house:"24",age:24,gender:"पुरुष"},
-        {name:"रखमा कुमारी",father:"श्रीरजी",house:"24",age:20,gender:"महिला"},
-        {name:"रथामा कुमारी मीणा",father:"श्रीरज",house:"24",age:19,gender:"महिला"},
-        {name:"मानीया",father:"भेरा",house:"29",age:77,gender:"पुरुष"},
-        {name:"देवली",father:"मानीया",house:"29",age:74,gender:"महिला"},
-        {name:"कालुराम",father:"मानिया",house:"29",age:45,gender:"पुरुष"},
-        {name:"दुर्गा बाई",father:"कालुराम",house:"29",age:43,gender:"महिला"},
-        {name:"राम चन्द्र",father:"मानीया",house:"29",age:37,gender:"पुरुष"},
-        {name:"परिवाराई",father:"रामचन्द",house:"29",age:36,gender:"महिला"},
-        {name:"बयन कुमार मीणा",father:"कालू राम मीणा",house:"29",age:23,gender:"पुरुष"},
-        {name:"दशरथ मीना",father:"कालू लाल",house:"29",age:21,gender:"पुरुष"},
-        {name:"प्रभुलाल मीन",father:"जरिया मीन",house:"34",age:54,gender:"पुरुष"},
-        {name:"देवीलाल मीन",father:"सुंदरलाल मीन",house:"34",age:32,gender:"पुरुष"},
-        {name:"अमरी",father:"प्रभु",house:"39",age:57,gender:"महिला"},
-        {name:"गीता बाई",father:"देवीलाल",house:"39",age:33,gender:"महिला"},
-        {name:"लक्ष्मी कुमारी",father:"राहुलमीणा",house:"39",age:25,gender:"महिला"},
-        {name:"पारस मीन",father:"प्रभु लाल मीन",house:"39",age:24,gender:"पुरुष"},
-        {name:"देवा",father:"रामा",house:"40",age:62,gender:"पुरुष"},
-        {name:"देवी लाल",father:"पेमा मीन",house:"40",age:42,gender:"पुरुष"},
-        {name:"शम्भूरी बाई",father:"देवा व राम",house:"40",age:36,gender:"महिला"},
-        {name:"नाथू लाल",father:"देवा",house:"40",age:33,gender:"पुरुष"},
-        {name:"शेर लिंह",father:"देवीलाल",house:"40",age:31,gender:"पुरुष"},
-        {name:"श्रीवा कुमारी",father:"देवंगा मीन",house:"40",age:30,gender:"महिला"},
-        {name:"अतिता कुमारी",father:"देवीलाल",house:"40",age:30,gender:"महिला"},
-        {name:"दीपिका",father:"नाथूलाल",house:"40",age:29,gender:"महिला"},
-        {name:"संगीता मीन",father:"देवीलाल मीन",house:"40",age:27,gender:"महिला"},
-        {name:"मोसम कुमार मीन",father:"देवीलाल मीन",house:"40",age:23,gender:"पुरुष"},
-        {name:"गणपत लाल मीन",father:"देवीलाल",house:"40",age:22,gender:"पुरुष"},
-        {name:"राबू लाल",father:"शंकर व राम",house:"42",age:47,gender:"पुरुष"},
-        {name:"शंकर",father:"रामा",house:"42",age:40,gender:"पुरुष"},
-        {name:"मेरू कुमारी मीन",father:"विवाल मीन",house:"42",age:22,gender:"महिला"},
-        {name:"विवाल मीन",father:"शंकर लाल मीन",house:"42",age:20,gender:"पुरुष"},
-        {name:"लालकी",father:"देवीलाल",house:"37",age:31,gender:"महिला"},
-        {name:"युहा लाल",father:"शम्भुलाल",house:"28",age:26,gender:"पुरुष"},
-        {name:"गोपाल",father:"प्रभु",house:"61",age:36,gender:"पुरुष"},
-        {name:"सुनीला",father:"गोपाल",house:"61",age:33,gender:"महिला"},
-        {name:"नरेंद्र",father:"प्रीरमल",house:"61",age:26,gender:"पुरुष"},
-        {name:"देवनी",father:"प्रभु",house:"66",age:77,gender:"पुरुष"},
-        {name:"हकरी",father:"देवबी",house:"66",age:72,gender:"महिला"},
-        {name:"शांति लाल",father:"मेघवेबी",house:"66",age:26,gender:"पुरुष"},
-        {name:"जीवनी",father:"गलीयाम",house:"69",age:66,gender:"महिला"},
-        {name:"जगदीश चन्द्र",father:"माझ्यासम",house:"69",age:43,gender:"पुरुष"},
-        {name:"गोतमाल",father:"मोबिली",house:"69",age:37,gender:"पुरुष"},
-        {name:"कान्ता बाई",father:"जगदीश चंद्र मीणा",house:"69",age:37,gender:"महिला"},
-        {name:"उषा",father:"मोबिली",house:"69",age:33,gender:"महिला"},
-        {name:"नारीया",father:"मान्द्र",house:"70",age:54,gender:"पुरुष"},
-        {name:"शब्दरी बाई",father:"नाडु",house:"70",age:46,gender:"महिला"},
-        {name:"बाबुलाल",father:"मान्द्र",house:"70",age:44,gender:"पुरुष"},
-        {name:"गंगा",father:"बाबुलाल",house:"70",age:42,gender:"महिला"},
-        {name:"नन्दा",father:"माझ्यासम",house:"71",age:82,gender:"पुरुष"},
-        {name:"केसरी बाई",father:"हंदर लाल",house:"71",age:42,gender:"महिला"},
-        {name:"रामा",father:"माझ्यासम",house:"72",age:77,gender:"पुरुष"},
-        {name:"दमली",father:"रामा",house:"72",age:72,gender:"महिला"},
-        {name:"सामरी बाई",father:"शंकर लाल",house:"72",age:39,gender:"महिला"},
-        {name:"देवा",father:"मारामा",house:"73",age:57,gender:"पुरुष"},
-        {name:"नारी",father:"देवा",house:"73",age:56,gender:"महिला"},
-        {name:"बेमराज",father:"मारामा",house:"75",age:42,gender:"पुरुष"},
-        {name:"गंगा राम",father:"माझ्यासम",house:"76",age:62,gender:"पुरुष"},
-        {name:"मोतीलाल",father:"माझ्यासम",house:"76",age:44,gender:"पुरुष"},
-        {name:"शांति बाई",father:"मोती लाल",house:"76",age:43,gender:"महिला"},
-        {name:"देवी लाल",father:"माझ्यासम",house:"76",age:40,gender:"पुरुष"},
-        {name:"धुलिया",father:"देवा",house:"77",age:87,gender:"पुरुष"},
-        {name:"रामली",father:"धुलिया",house:"77",age:82,gender:"महिला"},
-        {name:"नाभूलाल",father:"माझ्यासम",house:"77",age:51,gender:"पुरुष"},
-        {name:"कला",father:"माझ्यासम",house:"77",age:50,gender:"महिला"},
-        {name:"हरित",father:"मुखा",house:"77",age:40,gender:"पुरुष"},
-        {name:"चमन लाल",father:"प्राप्तु लाल",house:"77",age:25,gender:"पुरुष"},
-        {name:"धर्म कुमारी मीना",father:"नाथूलाल",house:"77",age:23,gender:"महिला"},
-        {name:"संतोष कुमारी मीना",father:"प्राप्तु लाल मीना",house:"77",age:20,gender:"महिला"},
-        {name:"स्यामा कुमारी मीना",father:"दूरीम मीना",house:"77",age:19,gender:"महिला"},
-        {name:"नानुराम",father:"प्राप्तु",house:"83",age:72,gender:"पुरुष"},
-        {name:"मालकी",father:"नानुराम",house:"83",age:67,gender:"महिला"},
-        {name:"गोतम",father:"प्राप्तु",house:"84",age:57,gender:"पुरुष"},
-        {name:"होमली",father:"गोतम",house:"84",age:54,gender:"महिला"},
-        {name:"लक्ष्मण लाल मीना",father:"गौतम",house:"84",age:22,gender:"पुरुष"},
-        {name:"सपना कुमारी मीना",father:"गौतम",house:"84",age:19,gender:"महिला"},
-        {name:"नारायण",father:"प्राप्तु",house:"85",age:62,gender:"पुरुष"},
-        {name:"केशरी",father:"नारायण",house:"85",age:60,gender:"महिला"},
-        {name:"हिरकी",father:"रजानिया",house:"85",age:35,gender:"महिला"},
-        {name:"खाड़नाराम",father:"प्राप्तु",house:"85",age:34,gender:"पुरुष"},
-        {name:"रामली",father:"मेरा",house:"88",age:72,gender:"महिला"},
-        {name:"देखी",father:"सूरज",house:"88",age:54,gender:"महिला"},
-        {name:"सूरज",father:"मेरा",house:"88",age:51,gender:"पुरुष"},
-        {name:"परिमा बाई",father:"लक्ष्मण",house:"88",age:42,gender:"महिला"},
-        {name:"लक्ष्मण",father:"मूरज",house:"88",age:32,gender:"पुरुष"},
-        {name:"भगवती",father:"मूरजमल",house:"88",age:25,gender:"महिला"},
-        {name:"बरजा",father:"भोमली",house:"89",age:82,gender:"महिला"},
-        {name:"अमृत लाल",father:"मेरा",house:"89",age:67,gender:"पुरुष"},
-        {name:"केशरी",father:"अमृत लाल",house:"89",age:64,gender:"महिला"},
-        {name:"सूरजिया",father:"मोमली",house:"89",age:54,gender:"पुरुष"},
-        {name:"सुनना",father:"सूरजिया",house:"89",age:53,gender:"महिला"},
-        {name:"मंगीलाल",father:"मोमली",house:"89",age:45,gender:"पुरुष"},
-        {name:"हुकरी",father:"मांगीलाल",house:"89",age:42,gender:"महिला"},
-        {name:"शंकर लाल",father:"प्रमुत लाल",house:"89",age:39,gender:"पुरुष"},
-        {name:"पिपिया",father:"शंकर",house:"89",age:39,gender:"महिला"},
-        {name:"काली",father:"प्रूरज मल",house:"89",age:30,gender:"महिला"},
-        {name:"सिवलाल",father:"प्रूरजमल",house:"89",age:30,gender:"पुरुष"},
-        {name:"भूला",father:"सिव लाल",house:"89",age:29,gender:"महिला"},
-        {name:"शांति लाल",father:"प्रूरज मल",house:"89",age:27,gender:"पुरुष"},
-        {name:"माया कुमारी",father:"प्रूरजमल मीणा",house:"89",age:25,gender:"महिला"},
-        {name:"रतन लाल मीना",father:"प्रमीणी लाल मीना",house:"89",age:25,gender:"पुरुष"},
-        {name:"अंदुरी मीना",father:"रतनलाल मीना",house:"89",age:24,gender:"महिला"},
-        {name:"वीवा कुमारी मीना",father:"मंनी लाल",house:"89",age:22,gender:"महिला"},
-        {name:"लक्ष्मण लाल मीना",father:"प्रमीणी लाल",house:"89",age:19,gender:"पुरुष"},
-        {name:"कमलाशंकर",father:"हरिराम",house:"राजपुरा",age:38,gender:"पुरुष"},
-        {name:"दुर्गावाई",father:"कमलाशंकर",house:"91",age:36,gender:"महिला"},
-        {name:"कृपा",father:"क्रिकिया",house:"92",age:54,gender:"पुरुष"},
-        {name:"पुरकी",father:"कृपा",house:"92",age:44,gender:"महिला"},
-        {name:"रमेश कुमार",father:"क्रपलाल",house:"92",age:28,gender:"पुरुष"},
-        {name:"रामकृपा",father:"रमेश",house:"92",age:27,gender:"महिला"}
-    ];
-
-    const ward2 = [
-        {name:"नाथु लाल",father:"क्रचक",house:"22",age:65,gender:"पुरुष"},
-        {name:"भगवती",father:"क्रचक",house:"22",age:62,gender:"पुरुष"},
-        {name:"नाथी",father:"नाथु लाल",house:"22",age:60,gender:"महिला"},
-        {name:"देवली",father:"भगवती",house:"22",age:60,gender:"महिला"},
-        {name:"पुष्कर",father:"गायुलाल",house:"22",age:44,gender:"पुरुष"},
-        {name:"प्रमीला",father:"पुष्कर",house:"22",age:42,gender:"महिला"},
-        {name:"बड़ीलाल",father:"गायुलाल",house:"22",age:41,gender:"पुरुष"},
-        {name:"दरिया",father:"बड़ीलाल",house:"22",age:40,gender:"महिला"},
-        {name:"बाबुलाल",father:"गायुलाल",house:"22",age:40,gender:"पुरुष"},
-        {name:"देवीलाल",father:"गायुलाल",house:"22",age:38,gender:"पुरुष"},
-        {name:"अमृतलाल",father:"मगवती",house:"22",age:37,gender:"पुरुष"},
-        {name:"मांगु कुमारी मीना",father:"बाबुलाल",house:"22",age:36,gender:"महिला"},
-        {name:"शान्ति",father:"देवीलाल",house:"22",age:35,gender:"महिला"},
-        {name:"शंकरी",father:"अमृतलाल",house:"22",age:33,gender:"महिला"},
-        {name:"पारसी",father:"मगवती",house:"22",age:28,gender:"महिला"},
-        {name:"बातुराम",father:"मगवती लाल",house:"22",age:26,gender:"पुरुष"},
-        {name:"सावरी मीणा",father:"बड़ी लाल मीना",house:"22",age:24,gender:"पुरुष"},
-        {name:"मूली कुमारी मीना",father:"बातुराम",house:"22",age:24,gender:"महिला"},
-        {name:"सिवलाल मीना",father:"बड़ीलाल",house:"22",age:19,gender:"पुरुष"},
-        {name:"ईश्वर लाल",father:"पुष्कर",house:"22",age:19,gender:"पुरुष"},
-        {name:"जीवा",father:"गायली",house:"25",age:69,gender:"पुरुष"},
-        {name:"केरकी",father:"जीवा",house:"25",age:67,gender:"महिला"},
-        {name:"शंकर लाल",father:"जीवा",house:"25",age:63,gender:"पुरुष"},
-        {name:"चोखी",father:"शंकर",house:"25",age:59,gender:"महिला"},
-        {name:"कमलावाई",father:"देवीलाल",house:"25",age:40,gender:"महिला"},
-        {name:"देवीलाल",father:"जीवा",house:"25",age:38,gender:"पुरुष"},
-        {name:"केशूराम मीणा",father:"जीवा",house:"25",age:36,gender:"पुरुष"},
-        {name:"देवली बाई मीणा",father:"केशूराम",house:"25",age:34,gender:"महिला"},
-        {name:"सुनना",father:"देवीलाल",house:"25",age:33,gender:"महिला"},
-        {name:"दिनेश कुमार मीना",father:"लाल मीना शंकर",house:"25",age:21,gender:"पुरुष"},
-        {name:"धनकी",father:"देवा",house:"27",age:60,gender:"महिला"},
-        {name:"शंकरलाल",father:"देवीलाल",house:"27",age:32,gender:"पुरुष"},
-        {name:"ममता",father:"शंकरलाल",house:"27",age:30,gender:"महिला"},
-        {name:"रामली",father:"अमरा",house:"28",age:62,gender:"महिला"},
-        {name:"मेरा",father:"अम्बावा",house:"28",age:57,gender:"पुरुष"},
-        {name:"शंकर",father:"मैकुलाल",house:"28",age:36,gender:"पुरुष"},
-        {name:"गुड्डी",father:"शूरोकर लाल",house:"28",age:35,gender:"महिला"},
-        {name:"नायुलाल मीना",father:"मेकुलाल मीना",house:"28",age:24,gender:"पुरुष"},
-        {name:"मगदु",father:"अम्बावा",house:"31",age:82,gender:"महिला"},
-        {name:"बगदी",father:"मेरा",house:"31",age:54,gender:"महिला"},
-        {name:"रामा",father:"अम्बाला",house:"32",age:67,gender:"पुरुष"},
-        {name:"कालकी",father:"रामा",house:"32",age:62,gender:"महिला"},
-        {name:"प्रेमचन्द",father:"रामा",house:"32",age:41,gender:"पुरुष"},
-        {name:"शांति बाई",father:"प्रेमचंद",house:"32",age:38,gender:"महिला"},
-        {name:"प्रकाश मीणा",father:"रामा",house:"32",age:35,gender:"पुरुष"},
-        {name:"नराणी बाई",father:"पपू लाल",house:"32",age:27,gender:"महिला"},
-        {name:"पपू लाल",father:"रामा मीना",house:"32",age:26,gender:"पुरुष"},
-        {name:"पूजा कुमारी मीणा",father:"देवी लाल मीणा",house:"32",age:21,gender:"महिला"},
-        {name:"देवी लाल",father:"प्रेम चंद",house:"32",age:20,gender:"पुरुष"},
-        {name:"सुन्दर लाल",father:"प्रेमचंद",house:"34",age:42,gender:"पुरुष"},
-        {name:"नाराणी",father:"सुन्दर",house:"34",age:40,gender:"महिला"},
-        {name:"केशू राम",father:"सुन्दर लाल",house:"34",age:27,gender:"पुरुष"},
-        {name:"गंगा मीना",father:"केशूराम मीना",house:"34",age:23,gender:"महिला"},
-        {name:"पिंदू कुमारी",father:"सुंदर लाल",house:"34",age:21,gender:"महिला"},
-        {name:"गोकल",father:"क्रचक",house:"37",age:60,gender:"पुरुष"},
-        {name:"रामली",father:"गोकल",house:"37",age:60,gender:"महिला"},
-        {name:"सुरजा बाद",father:"काठलाल",house:"",age:59,gender:"महिला"},
-        {name:"काठ लाल मीना",father:"गोकल",house:"37",age:40,gender:"पुरुष"},
-        {name:"सीता बाई",father:"गोकल मीन",house:"37",age:32,gender:"महिला"},
-        {name:"अमृत लाल",father:"गोकल मीन",house:"37",age:30,gender:"पुरुष"},
-        {name:"विवास कुमार मीना",father:"गोकल",house:"",age:29,gender:"पुरुष"},
-        {name:"गंगा",father:"अमृत लाल",house:"37",age:29,gender:"महिला"},
-        {name:"परसी कुमारी",father:"गोकल मीन",house:"37",age:24,gender:"महिला"},
-        {name:"रमेश",father:"क्रचक",house:"38",age:58,gender:"पुरुष"},
-        {name:"शान्ता",father:"रमेश",house:"38",age:55,gender:"महिला"},
-        {name:"नंदलाल",father:"रमेश",house:"38",age:35,gender:"पुरुष"},
-        {name:"अनिता कुमारी",father:"नंद लाल",house:"38",age:31,gender:"महिला"},
-        {name:"लक्ष्मी मीना",father:"प्रकाश मीना",house:"38",age:30,gender:"महिला"},
-        {name:"बलिवा",father:"नाथ",house:"40",age:82,gender:"पुरुष"},
-        {name:"गौतम",father:"क्रचक",house:"40",age:67,gender:"पुरुष"},
-        {name:"हकरी",father:"गौतम",house:"40",age:64,gender:"महिला"},
-        {name:"गोती कुमारी",father:"धन्ना लाल",house:"40",age:39,gender:"महिला"},
-        {name:"धन्ना लाल",father:"गोतम",house:"40",age:37,gender:"पुरुष"},
-        {name:"बन्दीकुमार",father:"गोतम",house:"40",age:33,gender:"पुरुष"},
-        {name:"अनिता मीन",father:"बंदी कुमार मीन",house:"40",age:33,gender:"महिला"},
-        {name:"द्विर लाल मीन",father:"गोतम मीन",house:"40",age:23,gender:"पुरुष"},
-        {name:"पेमली",father:"नोहन",house:"41",age:72,gender:"महिला"},
-        {name:"सुगना",father:"बादू लाल",house:"41",age:59,gender:"महिला"},
-        {name:"भगवती",father:"मोहन",house:"42",age:57,gender:"पुरुष"},
-        {name:"चपली",father:"भगवती",house:"42",age:49,gender:"महिला"},
-        {name:"बाबू लाल",father:"मोहन",house:"42",age:40,gender:"पुरुष"},
-        {name:"हीरा",father:"मगवती",house:"42",age:40,gender:"पुरुष"},
-        {name:"रामली",father:"हीरा",house:"42",age:38,gender:"महिला"},
-        {name:"कला बाई",father:"राबू लाल",house:"42",age:37,gender:"महिला"},
-        {name:"लालूराम मीना",father:"मगवती लाल मीना",house:"42",age:24,gender:"पुरुष"},
-        {name:"हुलिया",father:"मगवती",house:"43",age:57,gender:"पुरुष"},
-        {name:"लीला",father:"हुलिया",house:"43",age:54,gender:"महिला"},
-        {name:"अशोक कुमार मीना",father:"मगवंद मीना",house:"43",age:23,gender:"पुरुष"},
-        {name:"मंगीलाल मीना",father:"मगवंद",house:"43",age:22,gender:"पुरुष"},
-        {name:"लक्ष्मी कुमारी मीना",father:"मगवंद मीना",house:"43",age:20,gender:"महिला"},
-        {name:"अबुल",father:"मगविया",house:"44",age:60,gender:"पुरुष"},
-        {name:"बंदकी",father:"अबुल",house:"44",age:58,gender:"महिला"},
-        {name:"प्रेम चन्द",father:"मगवुल लाल",house:"44",age:40,gender:"पुरुष"},
-        {name:"सूरज",father:"प्रेमचन्द",house:"44",age:39,gender:"महिला"},
-        {name:"पूजा कुमारी मीना",father:"अमृत लाल मीना",house:"44",age:22,gender:"महिला"},
-        {name:"मीरा",father:"हीरा",house:"48",age:64,gender:"महिला"},
-        {name:"कल्लाल",father:"महीरा",house:"48",age:52,gender:"पुरुष"},
-        {name:"लालू राम",father:"महीरा",house:"48",age:39,gender:"पुरुष"},
-        {name:"कैलास",father:"लालूराम",house:"48",age:39,gender:"महिला"},
-        {name:"रतनी कुमारी",father:"मकूल लाल",house:"48",age:26,gender:"महिला"},
-        {name:"कालुराम मीना",father:"मकूल लाल मीना",house:"48",age:25,gender:"पुरुष"},
-        {name:"सोना मीना",father:"कालूराम मीना",house:"48",age:21,gender:"महिला"},
-        {name:"पप्पू लाल",father:"मकूल लाल",house:"48",age:21,gender:"पुरुष"},
-        {name:"गोतम",father:"मकूल लाल मीना",house:"49",age:72,gender:"पुरुष"},
-        {name:"राजा",father:"गोतम",house:"49",age:67,gender:"महिला"},
-        {name:"कपलाल",father:"गोतम",house:"49",age:45,gender:"पुरुष"},
-        {name:"कमली",father:"कपलाल",house:"49",age:44,gender:"महिला"},
-        {name:"मिरखारी",father:"गोतम",house:"49",age:37,gender:"पुरुष"},
-        {name:"ममता",father:"मिरखारी",house:"49",age:31,gender:"महिला"},
-        {name:"रेवा शंकर",father:"कपलाल",house:"49",age:26,gender:"पुरुष"},
-        {name:"आसीया",father:"गंजी",house:"50",age:67,gender:"पुरुष"},
-        {name:"रामली",father:"आसीया",house:"50",age:65,gender:"महिला"},
-        {name:"गोपाल",father:"आसीया",house:"50",age:41,gender:"पुरुष"},
-        {name:"रकमा",father:"गोपाल",house:"50",age:40,gender:"महिला"},
-        {name:"रमा",father:"कपलाल",house:"51",age:77,gender:"पुरुष"},
-        {name:"गंगा",father:"रमा",house:"51",age:72,gender:"महिला"},
-        {name:"गोपाल",father:"रमा",house:"51",age:60,gender:"पुरुष"},
-        {name:"पुनिया",father:"रमा",house:"51",age:48,gender:"पुरुष"},
-        {name:"मेहलाल",father:"रमा",house:"51",age:43,gender:"पुरुष"},
-        {name:"वरजा",father:"पुनिया",house:"51",age:43,gender:"महिला"},
-        {name:"गोति",father:"गोपाल",house:"51",age:40,gender:"महिला"},
-        {name:"केसरवाई",father:"मेहलाल",house:"51",age:39,gender:"महिला"},
-        {name:"लक्ष्मण",father:"रमा",house:"51",age:39,gender:"पुरुष"},
-        {name:"नगेश कुमार मीना",father:"गोपाल मीना",house:"51",age:19,gender:"पुरुष"},
-        {name:"कदवी",father:"कपा",house:"53",age:64,gender:"महिला"},
-        {name:"गोनी",father:"तेजा",house:"53",age:60,gender:"महिला"},
-        {name:"केशरी बाई",father:"आदेश लाल",house:"53",age:59,gender:"महिला"},
-        {name:"आदेश लाल",father:"कपा",house:"53",age:40,gender:"पुरुष"},
-        {name:"कृष्ण कुमार",father:"कपलाल",house:"53",age:33,gender:"पुरुष"},
-        {name:"कविता कुमारी",father:"गुडहाराम",house:"53",age:31,gender:"महिला"},
-        {name:"गुडा राम मीना",father:"गोजाराम",house:"53",age:30,gender:"पुरुष"},
-        {name:"सुरजमल",father:"गोजाराम",house:"53",age:29,gender:"पुरुष"},
-        {name:"लक्ष्मी मीना",father:"लालू राम",house:"53",age:26,gender:"महिला"},
-        {name:"लालूराम",father:"क्रदवी",house:"53",age:25,gender:"पुरुष"},
-        {name:"मक्षा",father:"मेरा",house:"55",age:82,gender:"पुरुष"},
-        {name:"मगवती",father:"मन्ना",house:"55",age:54,gender:"पुरुष"},
-        {name:"सवली",father:"मगवती",house:"55",age:53,gender:"महिला"},
-        {name:"शकर",father:"मन्ना लाल",house:"55",age:40,gender:"पुरुष"},
-        {name:"जीवा बाई",father:"शकर",house:"55",age:33,gender:"महिला"},
-        {name:"फुल चंद्र मीना",father:"मगवती",house:"55",age:31,gender:"पुरुष"},
-        {name:"पारसी कुमारी",father:"मगवती मीना",house:"55",age:27,gender:"महिला"},
-        {name:"पारक कुमारी मीना",father:"मगवती",house:"55",age:21,gender:"महिला"},
-        {name:"विवश लाल",father:"रामवली",house:"56",age:58,gender:"पुरुष"},
-        {name:"सुरजा",father:"विजय लाल",house:"56",age:57,gender:"महिला"},
-        {name:"ओमप्रकाश",father:"विवशलाल",house:"56",age:33,gender:"पुरुष"},
-        {name:"प्रेम प्रकाश मीना",father:"विवशलाल",house:"56",age:33,gender:"पुरुष"},
-        {name:"विश्वा",father:"देवा",house:"57",age:57,gender:"पुरुष"},
-        {name:"कविता कुमारी",father:"वशीया",house:"",age:26,gender:"महिला"},
-        {name:"प्रियंका मीना",father:"विश्वा",house:"57",age:25,gender:"महिला"},
-        {name:"शांति लाल मीना",father:"विश्वा",house:"57",age:23,gender:"पुरुष"},
-        {name:"राधा",father:"लिम्बा",house:"58",age:67,gender:"महिला"},
-        {name:"सुला कुमारी",father:"राधा बाई",house:"58",age:28,gender:"महिला"},
-        {name:"बादू कुमारी मीना",father:"राधा देवी",house:"58",age:27,gender:"महिला"},
-        {name:"मेरलाल मीना",father:"मोहन",house:"60",age:62,gender:"पुरुष"},
-        {name:"पेमली",father:"मेरा",house:"60",age:47,gender:"महिला"},
-        {name:"बाबुलाल",father:"मोहन",house:"60",age:41,gender:"पुरुष"},
-        {name:"बातुराम",father:"मेरू",house:"60",age:27,gender:"पुरुष"},
-        {name:"सुरजमल मीना",father:"मेरूलाल मीना",house:"60",age:22,gender:"पुरुष"},
-        {name:"गंगा",father:"पिरिया",house:"61",age:77,gender:"महिला"},
-        {name:"नारिया",father:"पिरिया",house:"61",age:63,gender:"पुरुष"},
-        {name:"नीला",father:"नारिया",house:"61",age:59,gender:"महिला"},
-        {name:"सीला",father:"अमरा",house:"61",age:54,gender:"महिला"},
-        {name:"गोपाल",father:"पिरिया",house:"61",age:36,gender:"पुरुष"},
-        {name:"कमली बाई",father:"मेल्लाल",house:"61",age:35,gender:"महिला"},
-        {name:"लिलता",father:"गोपाल",house:"61",age:34,gender:"महिला"},
-        {name:"मेरा",father:"अमरा",house:"61",age:32,gender:"पुरुष"},
-        {name:"थावरी कुमारी",father:"गरिया",house:"61",age:24,gender:"महिला"},
-        {name:"धनराज मीना",father:"गरिया",house:"61",age:22,gender:"पुरुष"},
-        {name:"कपली",father:"देवा",house:"63",age:77,gender:"महिला"},
-        {name:"रमेश",father:"देवा",house:"63",age:42,gender:"पुरुष"},
-        {name:"फुल्की",father:"रमेश",house:"63",age:40,gender:"महिला"},
-        {name:"शंकर",father:"देवा",house:"63",age:40,gender:"पुरुष"},
-        {name:"पिन्की",father:"शंकर",house:"63",age:39,gender:"महिला"},
-        {name:"गोपाल लाल",father:"देवा मीना",house:"63",age:36,gender:"पुरुष"},
-        {name:"कपरी बाई",father:"गोपाल लालमीना",house:"63",age:32,gender:"महिला"},
-        {name:"गंगा",father:"रमेश",house:"63",age:25,gender:"महिला"},
-        {name:"भोली",father:"रमा",house:"64",age:87,gender:"महिला"},
-        {name:"राजवन्ती",father:"विजय लाल",house:"64",age:55,gender:"महिला"},
-        {name:"किरण कुमारी",father:"विजयलाल",house:"64",age:33,gender:"महिला"},
-        {name:"ज्योति कुमारी मीना",father:"विजय लाल",house:"64",age:31,gender:"महिला"},
-        {name:"नरेन्द्र",father:"विजयलाल",house:"64",age:29,gender:"पुरुष"},
-        {name:"मुल्की मीना",father:"नरेन्द्र",house:"64",age:29,gender:"महिला"},
-        {name:"शंकुलाल देवा",father:"देवा",house:"65",age:57,gender:"पुरुष"},
-        {name:"गोवना",father:"शंकुश",house:"65",age:52,gender:"महिला"},
-        {name:"बालिया",father:"शम्मुश",house:"65",age:33,gender:"पुरुष"},
-        {name:"धनिया",father:"शम्मुश",house:"65",age:33,gender:"पुरुष"},
-        {name:"गीता",father:"बानिया",house:"65",age:31,gender:"महिला"},
-        {name:"शाली देवी",father:"धनिया",house:"65",age:30,gender:"महिला"},
-        {name:"मानमल",father:"देवनी",house:"66",age:42,gender:"पुरुष"},
-        {name:"कमलबाई",father:"मानमल",house:"66",age:35,gender:"महिला"},
-        {name:"बागुराम",father:"मोती",house:"69",age:97,gender:"पुरुष"},
-        {name:"केशरी",father:"बागुराम",house:"69",age:82,gender:"महिला"},
-        {name:"हरिया",father:"हरिया",house:"78",age:65,gender:"पुरुष"},
-        {name:"राजमल",father:"हरिया",house:"78",age:31,gender:"पुरुष"},
-        {name:"रुपाबाई",father:"राजमल",house:"78",age:30,gender:"महिला"},
-        {name:"पुनिया",father:"ममरा",house:"79",age:77,gender:"पुरुष"},
-        {name:"केशरी",father:"पुनिया",house:"79",age:57,gender:"महिला"},
-        {name:"रामचंद",father:"पुनिया",house:"79",age:40,gender:"पुरुष"},
-        {name:"सागरी देवी",father:"हरिया",house:"",age:38,gender:"महिला"},
-        {name:"कांतबाई",father:"रामचंद",house:"",age:37,gender:"महिला"},
-        {name:"राजमल",father:"पुनिया",house:"79",age:36,gender:"पुरुष"},
-        {name:"कैलाशी",father:"राजमल",house:"79",age:35,gender:"महिला"},
-        {name:"शांति",father:"नोपाल",house:"79",age:31,gender:"महिला"},
-        {name:"गोपाल मीणा",father:"पुनिया",house:"79",age:30,gender:"पुरुष"},
-        {name:"रुपा कुमारी मीना",father:"पुनिया मीना",house:"79",age:25,gender:"महिला"},
-        {name:"बानिया",father:"देविया",house:"81",age:62,gender:"पुरुष"},
-        {name:"नानी",father:"बानिया",house:"81",age:57,gender:"महिला"},
-        {name:"केवली",father:"देविया",house:"81",age:43,gender:"पुरुष"},
-        {name:"गंगा",father:"केवली",house:"81",age:41,gender:"महिला"},
-        {name:"सुरज मल मीणा",father:"श्रानु राम",house:"81",age:23,gender:"पुरुष"},
-        {name:"विजयलाल",father:"हेना",house:"82",age:43,gender:"पुरुष"},
-        {name:"रामली",father:"विजय लाल",house:"82",age:41,gender:"महिला"},
-        {name:"मनमल मीणा",father:"विजयलाल",house:"82",age:22,gender:"पुरुष"},
-        {name:"लिखिया",father:"हिंदुका",house:"86",age:77,gender:"पुरुष"},
-        {name:"शुक्की",father:"लिखिया",house:"86",age:74,gender:"महिला"},
-        {name:"चोखा",father:"हिंदिया",house:"86",age:30,gender:"पुरुष"},
-        {name:"चोखली बाई",father:"चोखाराम",house:"86",age:28,gender:"महिला"},
-        {name:"हीरा लाल",father:"जोला",house:"209",age:26,gender:"पुरुष"},
-        {name:"भीना मीना",father:"हीरालाल",house:"209",age:21,gender:"महिला"},
-        {name:"दरिया",father:"बंदी लाल",house:"",age:38,gender:"महिला"},
-        {name:"बाबुलाल",father:"बाबुलाल",house:"",age:37,gender:"पुरुष"},
-        {name:"अमृत लाल",father:"अमृत लाल",house:"",age:32,gender:"पुरुष"},
-        {name:"प्रकाश",father:"मेस",house:"",age:32,gender:"पुरुष"},
-        {name:"मोना बाई",father:"बाबुलाल",house:"",age:32,gender:"महिला"},
-        {name:"बंदी लाल",father:"मेक लाल",house:"",age:30,gender:"पुरुष"},
-        {name:"सुमित्रा",father:"ओम प्रकाश",house:"",age:30,gender:"महिला"},
-        {name:"गौतम लाल",father:"अमृत",house:"",age:28,gender:"पुरुष"},
-        {name:"नाक लाल",father:"मगवती",house:"",age:27,gender:"पुरुष"},
-        {name:"गोती मीना",father:"लक्ष्मण मीना",house:"51",age:32,gender:"महिला"},
-        {name:"देवली कुमारी मीना",father:"भरत मीना",house:"25",age:20,gender:"महिला"},
-        {name:"विवाक कुमार मीना",father:"कुलाल मीना",house:"49",age:18,gender:"पुरुष"},
-        {name:"रमजु लाल मीना",father:"राम चंद्र मीना",house:"79",age:19,gender:"पुरुष"},
-        {name:"सूरज मीना",father:"मुहिमा मीना",house:"78",age:24,gender:"पुरुष"},
-        {name:"सुकेश मीना",father:"देवीलाल मीना",house:"27",age:20,gender:"पुरुष"},
-        {name:"देवा मीना",father:"सूरज मीना",house:"78",age:30,gender:"महिला"},
-        {name:"रामा",father:"जगला",house:"35",age:59,gender:"पुरुष"},
-        {name:"काली",father:"रामा",house:"35",age:58,gender:"महिला"},
-        {name:"शान्ति",father:"परिया",house:"35",age:39,gender:"महिला"},
-        {name:"पारिया",father:"रामा",house:"35",age:38,gender:"पुरुष"},
-        {name:"रामकृष्णा",father:"प्रकाश",house:"35",age:34,gender:"महिला"},
-        {name:"प्रकाश",father:"रामा",house:"35",age:34,gender:"पुरुष"}
-    ];
-
-    const ward3 = [
-        {name:"गोतम",father:"सुविधा",house:"1",age:87,gender:"पुरुष"},
-        {name:"मेरू",father:"गोतम",house:"1",age:60,gender:"पुरुष"},
-        {name:"बावरी",father:"मेरू",house:"1",age:56,gender:"महिला"},
-        {name:"हीरालाल मीणा",father:"गोतम",house:"1",age:40,gender:"पुरुष"},
-        {name:"शाली बाई मीणा",father:"हीरा",house:"01",age:36,gender:"महिला"},
-        {name:"बावुराम",father:"मेरू",house:"1",age:27,gender:"पुरुष"},
-        {name:"लक्ष्मी मीणा",father:"बावुराम मीणा",house:"01",age:25,gender:"महिला"},
-        {name:"काली कुमारी",father:"कालुराम मीणा",house:"01",age:24,gender:"महिला"},
-        {name:"रामा",father:"गोतम",house:"2",age:64,gender:"पुरुष"},
-        {name:"बावरी",father:"रामा",house:"2",age:62,gender:"महिला"},
-        {name:"रामलिमीना",father:"प्रकाशनीना",house:"02",age:36,gender:"महिला"},
-        {name:"द्विवाराल",father:"रामा",house:"2",age:30,gender:"पुरुष"},
-        {name:"अयुरी",father:"भवरलाल",house:"2",age:29,gender:"महिला"},
-        {name:"भवरलाल",father:"रामा",house:"2",age:29,gender:"पुरुष"},
-        {name:"कान्ता",father:"द्विवाराल",house:"2",age:29,gender:"महिला"},
-        {name:"विवय लाल",father:"राम लाल",house:"02",age:27,gender:"पुरुष"},
-        {name:"कमली मीणा",father:"विवय लाल",house:"02",age:24,gender:"महिला"},
-        {name:"केशिया",father:"गोतम",house:"4",age:56,gender:"पुरुष"},
-        {name:"केशरी",father:"केशिया",house:"4",age:51,gender:"महिला"},
-        {name:"अतिता कुमारी मीणा",father:"लालुराम",house:"4",age:31,gender:"महिला"},
-        {name:"ओकार लाल",father:"मेरू राम",house:"04",age:27,gender:"पुरुष"},
-        {name:"लालू राम",father:"मेकिया",house:"4",age:26,gender:"पुरुष"},
-        {name:"देव कुमारी मीणा",father:"ओकार लाल मीणा",house:"4",age:24,gender:"महिला"},
-        {name:"सुरज मीना",father:"मेकूराम मीना",house:"4",age:20,gender:"पुरुष"},
-        {name:"पंचिया",father:"साङ",house:"5",age:77,gender:"पुरुष"},
-        {name:"रतुडी",father:"पंचिया",house:"5",age:72,gender:"महिला"},
-        {name:"सुरजमल",father:"साँचिया",house:"5",age:40,gender:"पुरुष"},
-        {name:"हीरकी",father:"सुरजमल",house:"5",age:39,gender:"महिला"},
-        {name:"कालू",father:"रामा",house:"6",age:77,gender:"पुरुष"},
-        {name:"शुल्की",father:"कालू",house:"6",age:72,gender:"महिला"},
-        {name:"मेघा",father:"कालू",house:"6",age:54,gender:"पुरुष"},
-        {name:"गीता",father:"मेघा",house:"6",age:52,gender:"महिला"},
-        {name:"नायू",father:"कालू",house:"6",age:40,gender:"पुरुष"},
-        {name:"कचरी",father:"नायू",house:"6",age:39,gender:"महिला"},
-        {name:"देवली",father:"चोखा",house:"7",age:87,gender:"महिला"},
-        {name:"अमरा",father:"चोखा",house:"7",age:39,gender:"पुरुष"},
-        {name:"जीवली",father:"अमरा",house:"7",age:38,gender:"महिला"},
-        {name:"हुरजी",father:"चोखा",house:"8",age:62,gender:"पुरुष"},
-        {name:"हुन्ना",father:"हुरजी",house:"8",age:59,gender:"महिला"},
-        {name:"गोती बाई",father:"हेबर",house:"8",age:34,gender:"महिला"},
-        {name:"हेबर लाल",father:"हुरजी",house:"8",age:30,gender:"पुरुष"},
-        {name:"मोती लाल",father:"चोखा",house:"9",age:52,gender:"पुरुष"},
-        {name:"राम सी",father:"मोती लाल",house:"9",age:49,gender:"महिला"},
-        {name:"मानमल मीना",father:"मोतीलाल मीना",house:"9",age:20,gender:"पुरुष"},
-        {name:"शुल्की",father:"लाल",house:"10",age:69,gender:"महिला"},
-        {name:"शायदी",father:"मोहन",house:"10",age:39,gender:"महिला"},
-        {name:"मोहन",father:"साला",house:"10",age:39,gender:"पुरुष"},
-        {name:"पुडीबाईमीना",father:"स्यामलाल",house:"10",age:33,gender:"महिला"},
-        {name:"स्याम लाल",father:"साला",house:"10",age:32,gender:"पुरुष"},
-        {name:"सिव लाल",father:"सालारोडा",house:"10",age:27,gender:"पुरुष"},
-        {name:"कला",father:"सिवलाल",house:"10",age:25,gender:"महिला"},
-        {name:"केसरी",father:"नन्दा",house:"11",age:74,gender:"महिला"},
-        {name:"नागरी",father:"भागला",house:"11",age:51,gender:"महिला"},
-        {name:"शंकर लाल मीना",father:"शागरी बाई",house:"11",age:27,gender:"पुरुष"},
-        {name:"रंग लाल मीना",father:"मगवती लाल मीना",house:"11",age:20,gender:"पुरुष"},
-        {name:"फुलिया",father:"मुक्करा",house:"12",age:60,gender:"पुरुष"},
-        {name:"जमना",father:"फुलिया",house:"12",age:59,gender:"महिला"},
-        {name:"होमला",father:"मुक्करा",house:"12",age:30,gender:"पुरुष"},
-        {name:"राजुडी",father:"होमला",house:"12",age:29,gender:"महिला"},
-        {name:"औरंकर लाल मीना",father:"मुक्करा",house:"12",age:27,gender:"पुरुष"},
-        {name:"रामा",father:"मुक्करा",house:"13",age:67,gender:"पुरुष"},
-        {name:"मानमल मीना",father:"रामा",house:"13",age:34,gender:"पुरुष"},
-        {name:"देवली",father:"मानमल",house:"13",age:32,gender:"महिला"},
-        {name:"धनीया",father:"मुक्करा",house:"14",age:56,gender:"पुरुष"},
-        {name:"मोवनी",father:"धनिया",house:"14",age:45,gender:"महिला"},
-        {name:"गोपाल",father:"मुक्करा",house:"14",age:30,gender:"पुरुष"},
-        {name:"शारदा",father:"गोपाल",house:"14",age:28,gender:"महिला"},
-        {name:"गंगा कुमारी",father:"नाथू मीना",house:"14",age:23,gender:"महिला"},
-        {name:"नाथू मीना",father:"मुक्करा",house:"14",age:22,gender:"पुरुष"},
-        {name:"कृपा",father:"मोतिम",house:"16",age:54,gender:"पुरुष"},
-        {name:"केसरी",father:"कृपा",house:"16",age:52,gender:"महिला"},
-        {name:"युवी बाई",father:"राजमल",house:"16",age:38,gender:"महिला"},
-        {name:"राज मल",father:"मोतिम",house:"16",age:38,gender:"पुरुष"},
-        {name:"सूरजा",father:"जुनी",house:"16",age:38,gender:"महिला"},
-        {name:"शंकर",father:"काना",house:"16",age:35,gender:"पुरुष"},
-        {name:"लक्ष्मी",father:"बालाराम",house:"16",age:28,gender:"महिला"},
-        {name:"बालाराम",father:"कृपा",house:"16",age:28,gender:"पुरुष"},
-        {name:"मुकेला कुमार मीना",father:"कृपाला",house:"16",age:21,gender:"पुरुष"},
-        {name:"होला राम",father:"ज्ञाना",house:"17",age:72,gender:"पुरुष"},
-        {name:"कुम्भणी",father:"होला राम",house:"17",age:70,gender:"महिला"},
-        {name:"पेमा मीना",father:"होलाराम",house:"17",age:43,gender:"पुरुष"},
-        {name:"मांगुडी",father:"पेमा",house:"17",age:42,gender:"महिला"},
-        {name:"संकलाल",father:"पेमा",house:"17",age:31,gender:"पुरुष"},
-        {name:"कविता",father:"संकलाल",house:"17",age:30,gender:"महिला"},
-        {name:"बाबुलाल",father:"होलाराम",house:"17",age:29,gender:"पुरुष"},
-        {name:"शिव लाल",father:"पेमा",house:"17",age:26,gender:"पुरुष"},
-        {name:"नारी",father:"शिवलाल",house:"17",age:25,gender:"महिला"},
-        {name:"रामा",father:"पेमा",house:"19",age:59,gender:"पुरुष"},
-        {name:"शान्ती",father:"रामा",house:"19",age:56,gender:"महिला"},
-        {name:"भैरा",father:"शान्ताराम",house:"19",age:43,gender:"पुरुष"},
-        {name:"बारदीया",father:"पेमा",house:"20",age:63,gender:"पुरुष"},
-        {name:"सुनना",father:"बारदीया",house:"20",age:62,gender:"महिला"},
-        {name:"हरजा मीणा",father:"स्थामलाल",house:"20",age:26,gender:"महिला"},
-        {name:"श्याम लाल",father:"बाबू मीणा",house:"20",age:25,gender:"पुरुष"},
-        {name:"अर्जुन",father:"पान्नू राम",house:"21",age:68,gender:"पुरुष"},
-        {name:"राबुनी",father:"अर्जुन",house:"21",age:67,gender:"महिला"},
-        {name:"दीपक कुमार",father:"अर्जुन",house:"21",age:31,gender:"पुरुष"},
-        {name:"काक",father:"मोणी",house:"22",age:52,gender:"पुरुष"},
-        {name:"जमना",father:"काक",house:"22",age:51,gender:"महिला"},
-        {name:"सुनिता मीणा",father:"गोपाल मीणा",house:"22",age:25,gender:"महिला"},
-        {name:"वरजा",father:"गोपाल",house:"23",age:79,gender:"महिला"},
-        {name:"हुक्की",father:"देवीलाल",house:"23",age:62,gender:"महिला"},
-        {name:"सूरज",father:"मोणी",house:"23",age:54,gender:"पुरुष"},
-        {name:"सुनावेदी",father:"सूरजमल",house:"23",age:52,gender:"महिला"},
-        {name:"शंकर लाल",father:"देवी लाल",house:"23",age:38,gender:"पुरुष"},
-        {name:"गीता",father:"संकर लाल",house:"23",age:38,gender:"महिला"},
-        {name:"पार्वती",father:"ईधर लाल",house:"23",age:31,gender:"महिला"},
-        {name:"शिवलाल",father:"सूरज मल",house:"23",age:30,gender:"पुरुष"},
-        {name:"सुल्की",father:"शिवलाल",house:"23",age:29,gender:"महिला"},
-        {name:"ईधर",father:"हुकी बाई",house:"23",age:27,gender:"पुरुष"},
-        {name:"पार्वती मीणा",father:"संकर लाल",house:"23",age:19,gender:"महिला"},
-        {name:"हुरजी",father:"सक",house:"24",age:64,gender:"पुरुष"},
-        {name:"देवली",father:"हुरजी",house:"24",age:62,gender:"महिला"},
-        {name:"मानकी",father:"हुरजी",house:"24",age:32,gender:"महिला"},
-        {name:"बागदी",father:"नाजी",house:"25",age:72,gender:"महिला"},
-        {name:"केसरी",father:"बालिया",house:"25",age:44,gender:"महिला"},
-        {name:"बालिया",father:"सगाजी",house:"25",age:44,gender:"पुरुष"},
-        {name:"केशिया",father:"संचिया",house:"26",age:52,gender:"पुरुष"},
-        {name:"कलादेवी",father:"केशुराम",house:"26",age:45,gender:"महिला"},
-        {name:"शांति लाल",father:"कैमूराम",house:"26",age:19,gender:"पुरुष"},
-        {name:"रोडिया",father:"रामा",house:"27",age:62,gender:"पुरुष"},
-        {name:"केशुराम",father:"रोडिया मीना",house:"27",age:30,gender:"पुरुष"},
-        {name:"बदल कुमार",father:"रोडिया",house:"27",age:26,gender:"पुरुष"},
-        {name:"रूपा",father:"रामा",house:"28",age:71,gender:"पुरुष"},
-        {name:"इन्द्रा",father:"रूपा",house:"28",age:53,gender:"महिला"},
-        {name:"अमर राम",father:"कृष लाल",house:"28",age:32,gender:"पुरुष"},
-        {name:"बारती",father:"अमरराम",house:"28",age:31,gender:"महिला"},
-        {name:"मानकी",father:"रामा",house:"29",age:90,gender:"महिला"},
-        {name:"लालूराम",father:"रामा",house:"29",age:45,gender:"पुरुष"},
-        {name:"शान्ती",father:"लालूराम",house:"29",age:40,gender:"महिला"},
-        {name:"सीता",father:"नायाजी",house:"30",age:52,gender:"महिला"},
-        {name:"रपक चन्द",father:"सगाजी",house:"30",age:46,gender:"पुरुष"},
-        {name:"कहू",father:"रपकचन्द",house:"30",age:41,gender:"महिला"},
-        {name:"रमेश",father:"गायगावी",house:"30",age:40,gender:"पुरुष"},
-        {name:"जोम प्रकाश",father:"गायगावी",house:"30",age:30,gender:"पुरुष"},
-        {name:"पार्वति",father:"जोम प्रकाश",house:"30",age:29,gender:"महिला"},
-        {name:"सुकेश कुमार",father:"रपकचंद",house:"30",age:19,gender:"पुरुष"},
-        {name:"विवला",father:"गायगावी",house:"31",age:54,gender:"पुरुष"},
-        {name:"देवली",father:"विवला",house:"31",age:52,gender:"महिला"},
-        {name:"दैनमल",father:"गायगावी",house:"31",age:30,gender:"पुरुष"},
-        {name:"कपलाल",father:"गायगावी",house:"32",age:34,gender:"पुरुष"},
-        {name:"करमावाई",father:"कपलाल",house:"32",age:32,gender:"महिला"},
-        {name:"नाक",father:"गायगावी",house:"32",age:30,gender:"पुरुष"},
-        {name:"हाया",father:"गायगावी",house:"32",age:28,gender:"महिला"},
-        {name:"बीकार",father:"गायगावी",house:"33",age:54,gender:"पुरुष"},
-        {name:"लिम्बया",father:"गायगावी",house:"33",age:44,gender:"पुरुष"},
-        {name:"कल्ला",father:"ऊंकार",house:"33",age:44,gender:"महिला"},
-        {name:"नारी",father:"लिम्बा",house:"33",age:40,gender:"महिला"},
-        {name:"लालू",father:"गायगावी",house:"34",age:59,gender:"पुरुष"},
-        {name:"मेचली",father:"लालू",house:"34",age:50,gender:"महिला"},
-        {name:"गुडडा",father:"गायगावी",house:"34",age:31,gender:"पुरुष"},
-        {name:"सुनना",father:"गुडडा",house:"34",age:29,gender:"महिला"},
-        {name:"पूजा कुमारी",father:"गायगावी",house:"34",age:20,gender:"महिला"},
-        {name:"श्री राम मीणा",father:"गायगावी",house:"34",age:19,gender:"पुरुष"},
-        {name:"गोतम",father:"गायगावी",house:"35",age:71,gender:"पुरुष"},
-        {name:"नारी",father:"गोतम",house:"35",age:70,gender:"महिला"},
-        {name:"कचक",father:"गायगावी",house:"36",age:79,gender:"पुरुष"},
-        {name:"सदुवी",father:"कचक",house:"36",age:76,gender:"महिला"},
-        {name:"देवली",father:"किकीया",house:"36",age:43,gender:"महिला"},
-        {name:"किकिया",father:"क्रचक",house:"36",age:41,gender:"पुरुष"},
-        {name:"गेन्दी",father:"लक्ष्मण",house:"36",age:38,gender:"महिला"},
-        {name:"लक्ष्मण",father:"क्रचक",house:"36",age:38,gender:"पुरुष"},
-        {name:"रमेश मीना",father:"क्रचक मीना",house:"36",age:34,gender:"पुरुष"},
-        {name:"बाल्की बाई मीना",father:"रमेश मीना",house:"36",age:32,gender:"महिला"},
-        {name:"हीरा",father:"जगदिया",house:"38",age:60,gender:"पुरुष"},
-        {name:"विवाल",father:"हीरा",house:"38",age:35,gender:"पुरुष"},
-        {name:"हृदी बाई",father:"विव लाल मीना",house:"38",age:32,gender:"महिला"},
-        {name:"देवली",father:"बालुराम",house:"38",age:32,gender:"महिला"},
-        {name:"धापूरी",father:"हीरालाल",house:"38",age:20,gender:"महिला"},
-        {name:"लालकी",father:"कम्बी",house:"39",age:64,gender:"महिला"},
-        {name:"बालुराम",father:"क्रमजी",house:"39",age:35,gender:"पुरुष"},
-        {name:"बंदुमीना",father:"क्रमजी",house:"39",age:32,gender:"पुरुष"},
-        {name:"केसरीबाई",father:"बंदुमीना",house:"39",age:31,gender:"महिला"},
-        {name:"सागरमल",father:"क्रमजी",house:"39",age:29,gender:"पुरुष"},
-        {name:"गंगा",father:"गोविंद मीना",house:"39",age:28,gender:"महिला"},
-        {name:"मनीथा मीना",father:"सागरमल मीना",house:"39",age:28,gender:"महिला"},
-        {name:"गोविंद",father:"क्रमजी",house:"39",age:28,gender:"पुरुष"},
-        {name:"बादूका",father:"क्रमक",house:"40",age:76,gender:"पुरुष"},
-        {name:"कचरी",father:"बादूका",house:"40",age:75,gender:"महिला"},
-        {name:"रामा",father:"आसूका",house:"40",age:54,gender:"पुरुष"},
-        {name:"सुगना",father:"रामा",house:"40",age:52,gender:"महिला"},
-        {name:"हीरालाल",father:"रामा",house:"40",age:29,gender:"पुरुष"},
-        {name:"अंगूरी",father:"हीरालाल मीना",house:"40",age:22,gender:"महिला"},
-        {name:"दन्ना",father:"गजेन्द्र",house:"41",age:43,gender:"महिला"},
-        {name:"पाक मीना",father:"अर्जुन लाल मीना",house:"41",age:25,gender:"महिला"},
-        {name:"अर्जुन लाल मीना",father:"गजेंद्र मीना",house:"41",age:23,gender:"पुरुष"},
-        {name:"रमेश चंद्र",father:"शेखर",house:"41",age:19,gender:"पुरुष"},
-        {name:"गोपाल",father:"श्रासुता",house:"42",age:42,gender:"पुरुष"},
-        {name:"मेचली",father:"गोपाल",house:"42",age:41,gender:"महिला"},
-        {name:"मानमल",father:"क्राट",house:"43",age:72,gender:"पुरुष"},
-        {name:"जालकी",father:"मानमल",house:"43",age:71,gender:"महिला"},
-        {name:"गल्ली",father:"मानमल",house:"43",age:52,gender:"पुरुष"},
-        {name:"चोखली",father:"गल्ली",house:"43",age:46,gender:"महिला"},
-        {name:"बालिया",father:"मानमल",house:"43",age:44,gender:"पुरुष"},
-        {name:"शान्ती बाई",father:"बालिया",house:"43",age:37,gender:"महिला"},
-        {name:"सीमा मीणा",father:"होम चंद",house:"43",age:27,gender:"महिला"},
-        {name:"होमचंद",father:"शेखरी",house:"43",age:27,gender:"पुरुष"},
-        {name:"नाटक",father:"क्राट",house:"44",age:79,gender:"पुरुष"},
-        {name:"शुल्की",father:"नाटक",house:"44",age:77,gender:"महिला"},
-        {name:"देवा",father:"मारू",house:"44",age:52,gender:"पुरुष"},
-        {name:"शान्ती",father:"देवा",house:"44",age:50,gender:"महिला"},
-        {name:"प्रकाश",father:"मारू",house:"44",age:42,gender:"पुरुष"},
-        {name:"मांगुडी",father:"प्रकाश",house:"44",age:41,gender:"महिला"},
-        {name:"मेरकी",father:"मोतीलाल मीणा",house:"44",age:27,gender:"महिला"},
-        {name:"मोती लाल मीणा",father:"देवीलाल मीणा",house:"44",age:26,gender:"पुरुष"},
-        {name:"रामुडी मीणा",father:"मक्राट मीणा",house:"44",age:21,gender:"महिला"},
-        {name:"अंगूरबाला",father:"देवीलाल मीना",house:"44",age:21,gender:"महिला"},
-        {name:"गुलाब",father:"मक्राट चंद",house:"44",age:19,gender:"पुरुष"},
-        {name:"लखिया",father:"क्राट",house:"45",age:64,gender:"पुरुष"},
-        {name:"नाराणी",father:"लखिया",house:"45",age:62,gender:"महिला"},
-        {name:"केसरी",father:"धनराज",house:"45",age:35,gender:"महिला"},
-        {name:"लक्ष्मी मीणा",father:"बंदू लाल",house:"45",age:32,gender:"महिला"},
-        {name:"धनराज",father:"सिद्धया",house:"45",age:32,gender:"पुरुष"},
-        {name:"पार्वती",father:"धनराज",house:"45",age:31,gender:"महिला"},
-        {name:"बंदू लाल मीणा",father:"सहित्य",house:"45",age:30,gender:"पुरुष"},
-        {name:"बालिया",father:"हुराजी",house:"46",age:52,gender:"पुरुष"},
-        {name:"डाली",father:"बालिया",house:"46",age:47,gender:"महिला"},
-        {name:"बंदीलाल",father:"मालुराम",house:"46",age:27,gender:"पुरुष"},
-        {name:"ममता कुमारी मीणा",father:"बंदीलाल मीणा",house:"46",age:20,gender:"महिला"},
-        {name:"किसन मीना",father:"मालुराम",house:"46",age:19,gender:"पुरुष"},
-        {name:"पृथ्वीराज",father:"मुराजी",house:"47",age:60,gender:"पुरुष"},
-        {name:"पार्वती",father:"पितिया",house:"47",age:50,gender:"महिला"},
-        {name:"सागर कुमारी मीना",father:"मांगीलाल मीना",house:"47",age:22,gender:"महिला"},
-        {name:"मांगी लाल मीणा",father:"प्रदीपराज मीणा",house:"47",age:22,gender:"पुरुष"},
-        {name:"प्रभू लाल मीना",father:"प्रदीपराज मीना",house:"47",age:20,gender:"पुरुष"},
-        {name:"गडुरिया",father:"रतना",house:"48",age:77,gender:"पुरुष"},
-        {name:"भूरी",father:"गडुरिया",house:"48",age:74,gender:"महिला"},
-        {name:"मांगिया",father:"साहित्य",house:"48",age:53,gender:"पुरुष"},
-        {name:"भुलकी",father:"मांगिया",house:"48",age:50,gender:"महिला"},
-        {name:"पुरुष",father:"मांगी लाल",house:"48",age:28,gender:"पुरुष"},
-        {name:"मीरा मीना",father:"पुरुष",house:"48",age:27,gender:"महिला"},
-        {name:"आदेश मीणा",father:"मांगीलाल",house:"48",age:22,gender:"पुरुष"},
-        {name:"कंकुनी",father:"रक्का",house:"49",age:79,gender:"महिला"},
-        {name:"चंद्रिया",father:"रक्का",house:"50",age:59,gender:"पुरुष"},
-        {name:"देवली",father:"चंद्रिया",house:"50",age:58,gender:"महिला"},
-        {name:"देवली",father:"राजमल",house:"50",age:41,gender:"महिला"},
-        {name:"राजमल",father:"चन्द्रीया",house:"50",age:39,gender:"पुरुष"},
-        {name:"नायुलाल",father:"चन्द्रीया",house:"50",age:31,gender:"पुरुष"},
-        {name:"बातुराम",father:"चंद्रिया",house:"50",age:30,gender:"पुरुष"},
-        {name:"दुर्गा",father:"नायुलाल",house:"50",age:30,gender:"महिला"},
-        {name:"कैलासी कुमारी",father:"प्राप्तु राम",house:"50",age:27,gender:"महिला"},
-        {name:"मोना मीना",father:"चंदिरिया",house:"50",age:22,gender:"महिला"},
-        {name:"गोतम",father:"जीया",house:"52",age:76,gender:"पुरुष"},
-        {name:"करमा",father:"गोतम",house:"52",age:74,gender:"महिला"},
-        {name:"देवा",father:"गोतम",house:"52",age:52,gender:"पुरुष"},
-        {name:"विवली",father:"देवा",house:"52",age:50,gender:"महिला"},
-        {name:"नारायण",father:"गोतम",house:"52",age:39,gender:"पुरुष"},
-        {name:"युवी बाई",father:"नारायण",house:"52",age:36,gender:"महिला"},
-        {name:"सुरजमल",father:"आसाराम",house:"52",age:34,gender:"पुरुष"},
-        {name:"दैवरलाल",father:"गोतम",house:"52",age:30,gender:"पुरुष"},
-        {name:"लच्छी मीना",father:"दैवर लाल",house:"52",age:29,gender:"महिला"},
-        {name:"धनराज",father:"देवीलाल",house:"52",age:29,gender:"पुरुष"},
-        {name:"मीरा मीना",father:"धनराज मीना",house:"52",age:25,gender:"महिला"},
-        {name:"धरजी लाल",father:"देवीलाल",house:"52",age:24,gender:"पुरुष"},
-        {name:"संतोषी",father:"देवीलाल",house:"52",age:19,gender:"महिला"},
-        {name:"मानिया",father:"जीया",house:"53",age:69,gender:"पुरुष"},
-        {name:"विवली",father:"मानिया",house:"53",age:67,gender:"महिला"},
-        {name:"नंदा",father:"मनिया",house:"53",age:37,gender:"पुरुष"},
-        {name:"धुला",father:"नन्दलाल",house:"53",age:34,gender:"महिला"},
-        {name:"हुरजी",father:"काकू",house:"54",age:81,gender:"पुरुष"},
-        {name:"कमली",father:"हुरजी",house:"54",age:79,gender:"महिला"},
-        {name:"नंद लाल",father:"हुरजी",house:"54",age:44,gender:"पुरुष"},
-        {name:"बानकी",father:"नन्द लाल",house:"54",age:38,gender:"महिला"},
-        {name:"संगीता कुमारी मीना",father:"केंद्राराम मीना",house:"54",age:28,gender:"महिला"},
-        {name:"केंद्राराम",father:"हुरजी",house:"54",age:27,gender:"पुरुष"},
-        {name:"राव जी",father:"किन्नल",house:"55",age:68,gender:"पुरुष"},
-        {name:"जमना",father:"रावजी",house:"55",age:66,gender:"महिला"},
-        {name:"बायुराम",father:"बायुराम",house:"55",age:36,gender:"पुरुष"},
-        {name:"मंजू बाई",father:"बायुराम",house:"55",age:35,gender:"महिला"},
-        {name:"धारजी",father:"किलन",house:"56",age:72,gender:"पुरुष"},
-        {name:"गोती",father:"धारजी",house:"56",age:69,gender:"महिला"},
-        {name:"कंकुनी",father:"देवीलाल",house:"56",age:39,gender:"महिला"},
-        {name:"देवीलाल",father:"धारजी",house:"56",age:39,gender:"पुरुष"},
-        {name:"बान्की बाई",father:"बोमप्रकाश",house:"56",age:32,gender:"महिला"},
-        {name:"बोम प्रकाश",father:"मधारजी",house:"56",age:32,gender:"पुरुष"},
-        {name:"सुरजा बाई",father:"बोम प्रकाश",house:"56",age:31,gender:"महिला"},
-        {name:"मेचली",father:"नन्दा",house:"57",age:82,gender:"महिला"},
-        {name:"बन्दा",father:"नोपाल",house:"57",age:45,gender:"महिला"},
-        {name:"गोपाल",father:"मंदा",house:"57",age:40,gender:"पुरुष"},
-        {name:"पुष्पा मीना",father:"गोपाल लाल मीना",house:"57",age:23,gender:"महिला"},
-        {name:"काटक",father:"किलन",house:"58",age:76,gender:"पुरुष"},
-        {name:"नायु",father:"काटक",house:"58",age:45,gender:"पुरुष"},
-        {name:"श्यामा",father:"नायु",house:"58",age:43,gender:"महिला"},
-        {name:"देवा",father:"काटक",house:"58",age:43,gender:"पुरुष"},
-        {name:"कंकुनी",father:"राजमल",house:"58",age:39,gender:"महिला"},
-        {name:"रेखा",father:"केसुराम",house:"58",age:35,gender:"महिला"},
-        {name:"केसुराम",father:"काटक",house:"58",age:35,gender:"पुरुष"},
-        {name:"सुनना",father:"सुकेस कुमार",house:"58",age:25,gender:"महिला"},
-        {name:"सुकेस कुमार",father:"महुलाल",house:"58",age:21,gender:"पुरुष"},
-        {name:"लक्ष्मण",father:"किलन",house:"59",age:62,gender:"पुरुष"},
-        {name:"गीता",father:"लक्ष्मण",house:"59",age:59,gender:"महिला"},
-        {name:"विरजी",father:"सक्कमण",house:"59",age:36,gender:"पुरुष"},
-        {name:"सागर",father:"शंकर लाल",house:"59",age:36,gender:"महिला"},
-        {name:"शंकर लाल",father:"सक्कमण लाल",house:"59",age:32,gender:"पुरुष"},
-        {name:"गणेश",father:"किसन",house:"60",age:64,gender:"पुरुष"},
-        {name:"रामली",father:"गणेश",house:"60",age:62,gender:"महिला"},
-        {name:"हेमंत",father:"द्विवार लाल",house:"60",age:29,gender:"महिला"},
-        {name:"द्विवार लाल",father:"गणेश",house:"60",age:29,gender:"पुरुष"},
-        {name:"यावरा",father:"कुकरा",house:"61",age:62,gender:"पुरुष"},
-        {name:"नाकुकी",father:"यावरा",house:"61",age:59,gender:"महिला"},
-        {name:"भोजवी",father:"कुकरा",house:"62",age:69,gender:"पुरुष"},
-        {name:"रजिवा",father:"भोजवी",house:"62",age:67,gender:"महिला"},
-        {name:"देवीलाल",father:"भोजवी",house:"62",age:35,gender:"पुरुष"},
-        {name:"युवी",father:"देवी लाल",house:"62",age:28,gender:"महिला"},
-        {name:"प्रियंका कुमारी",father:"भोजवी भीना",house:"62",age:19,gender:"महिला"},
-        {name:"मानमल",father:"कुकरा",house:"63",age:60,gender:"पुरुष"},
-        {name:"टमली",father:"मानमल",house:"63",age:56,gender:"महिला"},
-        {name:"काठलाल",father:"मानमल",house:"63",age:26,gender:"पुरुष"},
-        {name:"पिंका",father:"कालू",house:"63",age:23,gender:"महिला"},
-        {name:"लक्ष्मी कुमारी",father:"मानमल भीना",house:"63",age:20,gender:"महिला"},
-        {name:"संकर लाल",father:"मानमल",house:"63",age:19,gender:"पुरुष"},
-        {name:"नायु",father:"कुकरा",house:"64",age:74,gender:"पुरुष"},
-        {name:"कुमली",father:"नायु",house:"64",age:69,gender:"महिला"},
-        {name:"लीला",father:"कमलेश",house:"64",age:36,gender:"महिला"},
-        {name:"गेल्ली",father:"नारायणलाल",house:"64",age:32,gender:"महिला"},
-        {name:"नारायणलाल",father:"नायु",house:"64",age:32,gender:"पुरुष"},
-        {name:"मूली बाई मीणा",father:"नायू राम",house:"64",age:30,gender:"महिला"},
-        {name:"नायू राम",father:"नायू लाल मीणा",house:"64",age:28,gender:"पुरुष"},
-        {name:"बसन्ती",father:"नायु",house:"64",age:28,gender:"महिला"},
-        {name:"गलजी",father:"कुकरा",house:"65",age:67,gender:"पुरुष"},
-        {name:"गंगा",father:"गलजी",house:"65",age:65,gender:"महिला"},
-        {name:"धूलचन्द",father:"शल्ली",house:"65",age:44,gender:"पुरुष"},
-        {name:"धूलां",father:"धूलचन्द",house:"65",age:43,gender:"महिला"},
-        {name:"गोतम लाल",father:"शल्ली",house:"65",age:43,gender:"पुरुष"},
-        {name:"मेल्लाल",father:"शल्ली",house:"65",age:39,gender:"पुरुष"},
-        {name:"लच्छी",father:"गोतम",house:"65",age:36,gender:"महिला"},
-        {name:"मुकेश मीणा",father:"शल्ली",house:"65",age:22,gender:"पुरुष"},
-        {name:"आशाराम मीणा",father:"शल्ली मीणा",house:"65",age:21,gender:"पुरुष"},
-        {name:"लीला कुमारी",father:"मुकेश मीणा",house:"65",age:20,gender:"महिला"},
-        {name:"कहनी",father:"केशू राम",house:"66",age:77,gender:"महिला"},
-        {name:"राधी बाई मीणा",father:"बागूराम मीणा",house:"66",age:35,gender:"महिला"},
-        {name:"बागूराम",father:"केशू राम",house:"66",age:33,gender:"पुरुष"},
-        {name:"लक्ष्मण",father:"केशू राम",house:"67",age:52,gender:"पुरुष"},
-        {name:"शान्ती",father:"लक्ष्मण",house:"67",age:50,gender:"महिला"},
-        {name:"सिवरा बाई मीणा",father:"पृथ्वीराज मीणा",house:"67",age:29,gender:"महिला"},
-        {name:"पृथ्वीराज",father:"शल्लम",house:"67",age:26,gender:"पुरुष"},
-        {name:"प्रभू",father:"केशू राम",house:"68",age:54,gender:"पुरुष"},
-        {name:"कारी",father:"प्रभू",house:"68",age:51,gender:"महिला"},
-        {name:"हरलाल",father:"शेमला",house:"69",age:64,gender:"पुरुष"},
-        {name:"बानकी",father:"हरलाल",house:"69",age:60,gender:"महिला"},
-        {name:"गोविन्द कुमार",father:"हरलाल",house:"69",age:26,gender:"पुरुष"},
-        {name:"श्यामा मीणा",father:"गोविन्द मीणा",house:"69",age:22,gender:"महिला"},
-        {name:"कालू राम",father:"शेमला",house:"71",age:69,gender:"पुरुष"},
-        {name:"रामली",father:"कालू राम",house:"71",age:66,gender:"महिला"},
-        {name:"नगीना कुमारी",father:"रतनलाल",house:"71",age:20,gender:"महिला"},
-        {name:"कुलवंती कुमारी मीणा",father:"बंद कुमार मीणा",house:"78",age:28,gender:"महिला"}
-    ];
-
-    // Ward 4 - Sample + Real
-    const ward4 = [
-        {name:"भीवन लाल",father:"क्रकू मीणा",house:"0",age:47,gender:"पुरुष"},
-        {name:"सांतिबाई",father:"भीवन लाल मीणा",house:"0",age:45,gender:"महिला"},
-        {name:"सुन्दर बाई",father:"कैलास चंद्र मीणा",house:"0",age:27,gender:"महिला"},
-        {name:"प्रेम",father:"कारुलाल",house:"0",age:25,gender:"महिला"},
-        {name:"नमू लाल मीणा",father:"भीवन लाल मीणा",house:"0",age:24,gender:"पुरुष"},
-        {name:"सुरेंद्र कुमार चंदालियू",father:"सोमवंशी लाल चंदालियू",house:"0",age:45,gender:"पुरुष"},
-        {name:"दीति चंदालिया",father:"सुरेंद्र कुमार चंदालियू",house:"0",age:43,gender:"महिला"},
-        {name:"बाबू लाल मीणा",father:"भीवन लाल मीणा",house:"01",age:19,gender:"पुरुष"},
-        {name:"खानु राम",father:"सोमवंशी लाल चंदालियू",house:"9",age:24,gender:"पुरुष"},
-        {name:"कंचन बाई",father:"स्याम लाल मीणा",house:"12",age:36,gender:"महिला"},
-        {name:"स्याम लाल",father:"भीवन लाल मीणा",house:"15",age:32,gender:"पुरुष"},
-        {name:"हरिसंकर मीणा",father:"दरिया",house:"81",age:21,gender:"पुरुष"},
-        {name:"प्रेमवंशकर मीणा",father:"भीवन लाल मीणा",house:"101",age:35,gender:"पुरुष"},
-        {name:"मीरा",father:"नारायण",house:"120",age:34,gender:"महिला"},
-        {name:"राम प्रसाद",father:"सोमवंशी लाल",house:"144",age:27,gender:"पुरुष"},
-        {name:"रविशंकर",father:"साहसलवंशकर",house:"175",age:39,gender:"पुरुष"},
-        {name:"हीरा मीणा",father:"नंदा मीणा",house:"229",age:32,gender:"महिला"},
-        {name:"रामचंद्र",father:"सोमवंशी लाल",house:"239",age:35,gender:"पुरुष"},
-        {name:"नारायण",father:"सुर्जामुराम",house:"239",age:33,gender:"पुरुष"},
-        {name:"लता कुमारी मीणा",father:"रमेश चंद्र",house:"239",age:29,gender:"महिला"},
-        {name:"लता मीणा",father:"राम प्रसाद",house:"239",age:27,gender:"महिला"},
-        {name:"अम्मा बाई",father:"सुरजमल मीणा",house:"253",age:40,gender:"महिला"},
-        {name:"नानी",father:"शांति लाल",house:"261",age:29,gender:"महिला"},
-        {name:"शांति लाल",father:"सोमवंशी लाल",house:"261",age:27,gender:"पुरुष"},
-        {name:"मंजू",father:"ईश्वर लाल",house:"280",age:26,gender:"महिला"},
-        {name:"ईश्वर लाल",father:"क्रक्क",house:"280",age:26,gender:"पुरुष"},
-        {name:"श्याम लाल",father:"जालम",house:"294",age:38,gender:"पुरुष"},
-        {name:"ईश्वर लाल",father:"कुशाला",house:"296",age:27,gender:"पुरुष"},
-        {name:"पार्वती बाई",father:"अम्बा लाल मीना",house:"296",age:26,gender:"महिला"},
-        {name:"हेमलता",father:"रामचंद्र",house:"297",age:31,gender:"महिला"},
-        {name:"पंकज कुमार मीना",father:"होमजी मीना",house:"298",age:20,gender:"पुरुष"},
-        {name:"रातु मीना",father:"ग्रीरज कुमार मीना",house:"299",age:20,gender:"महिला"},
-        {name:"मंगलू बाई",father:"शांति लाल",house:"302",age:40,gender:"महिला"},
-        {name:"रूपा",father:"जंगला",house:"304",age:64,gender:"पुरुष"},
-        {name:"रावुती",father:"रूपा",house:"304",age:62,gender:"महिला"},
-        {name:"पातुनी",father:"चन्द्रीया",house:"304",age:44,gender:"महिला"},
-        {name:"चन्द्रीया",father:"कूपा",house:"304",age:43,gender:"पुरुष"},
-        {name:"गणेश",father:"कूपा",house:"304",age:40,gender:"पुरुष"},
-        {name:"सुरज",father:"कूपा",house:"304",age:35,gender:"पुरुष"},
-        {name:"कारू",father:"ज्जुनी",house:"305",age:35,gender:"पुरुष"},
-        {name:"सविता",father:"गणेशप्रसाद",house:"305",age:34,gender:"महिला"},
-        {name:"ओंकार",father:"तेजिया",house:"306",age:52,gender:"पुरुष"},
-        {name:"सिया",father:"तेजिया",house:"306",age:50,gender:"पुरुष"},
-        {name:"सीता",father:"ओकार",house:"306",age:44,gender:"महिला"},
-        {name:"लीला",father:"सीता",house:"306",age:42,gender:"महिला"},
-        {name:"अजुनी",father:"जगला",house:"307",age:72,gender:"पुरुष"},
-        {name:"तेजकी",father:"अजुनी",house:"307",age:70,gender:"महिला"},
-        {name:"विजिया",father:"जगला",house:"307",age:53,gender:"पुरुष"},
-        {name:"सीता",father:"विजिया",house:"307",age:46,gender:"महिला"},
-        {name:"सूरज",father:"कालु",house:"307",age:43,gender:"पुरुष"},
-        {name:"कैलासी",father:"सूरज",house:"307",age:41,gender:"महिला"},
-        {name:"लीला",father:"जुनी",house:"307",age:40,gender:"महिला"},
-        {name:"मोहनी बाई",father:"होम बी",house:"307",age:36,gender:"महिला"},
-        {name:"होम बी",father:"गंगा",house:"307",age:34,gender:"पुरुष"},
-        {name:"पारस",father:"विजयलाल",house:"307",age:34,gender:"पुरुष"},
-        {name:"नारूलाल",father:"जुनी",house:"307",age:33,gender:"पुरुष"},
-        {name:"मनीषा",father:"पारस",house:"307",age:31,gender:"महिला"},
-        {name:"रूसा",father:"नारू लाल",house:"307",age:31,gender:"महिला"},
-        {name:"शाली कुमारी",father:"अजुनीलाल",house:"307",age:30,gender:"महिला"},
-        {name:"प्रमीला",father:"बालुराम",house:"307",age:29,gender:"महिला"},
-        {name:"केसरी बाई मीणा",father:"स्थामलाल मीणा",house:"307",age:29,gender:"महिला"},
-        {name:"कैलास चंद्र",father:"विजय मीणा",house:"307",age:27,gender:"पुरुष"},
-        {name:"बालु राम मीणा",father:"जुनी मीणा",house:"307",age:26,gender:"पुरुष"},
-        {name:"अतिता",father:"बालु राम मीणा",house:"307",age:24,gender:"महिला"}
-    ];
-
-    // Ward 5 & 6 - Auto generated
-    const ward5 = [];
-    const names5 = ["राकेश","मुकेश","रमेश","सुरेश","महेश","कैलाश","गोपाल","नन्द","राजेश","विनोद","सुनील","हरि","मनोज","पंकज","संजय","अजय","विजय","जय","राज","अमित"];
-    for (let i = 0; i < 80; i++) {
-        const isMale = i % 2 === 0;
-        const name = names5[i % names5.length] + (isMale ? " मीणा" : " बाई");
-        const father = names5[(i+5) % names5.length] + (isMale ? " मीणा" : " मीना");
-        ward5.push({name,father,house:String(500 + i),age:18 + (i % 45),gender:isMale ? "पुरुष" : "महिला"});
-    }
-
-    const ward6 = [];
-    const names6 = ["आशा","कविता","सुषमा","शारदा","मनीषा","रचना","सरिता","नेहा","प्रिया","मोना","सीमा","रीना","पूजा","आरती","किरण","अनु","स्नेहा","दीपा","माया","नीता"];
-    for (let i = 0; i < 70; i++) {
-        const isMale = i % 3 === 0;
-        const name = names6[i % names6.length] + (isMale ? " कुमार" : " बाई");
-        const father = names6[(i+7) % names6.length] + (isMale ? " कुमार" : " मीणा");
-        ward6.push({name,father,house:String(600 + i),age:18 + (i % 40),gender:isMale ? "पुरुष" : "महिला"});
-    }
-
-    return {
-        ward1: ward1.map((v, i) => ({ ...v, ward: "1", village: "राणपुर", epic: generateEPIC(1, i+1) })),
-        ward2: ward2.map((v, i) => ({ ...v, ward: "2", village: "राणपुर", epic: generateEPIC(2, i+1) })),
-        ward3: ward3.map((v, i) => ({ ...v, ward: "3", village: "सामली पठार", epic: generateEPIC(3, i+1) })),
-        ward4: ward4.map((v, i) => ({ ...v, ward: "4", village: "प्रयाग ची का पठार", epic: generateEPIC(4, i+1) })),
-        ward5: ward5.map((v, i) => ({ ...v, ward: "5", village: "सामली पठार", epic: generateEPIC(5, i+1) })),
-        ward6: ward6.map((v, i) => ({ ...v, ward: "6", village: "सामली पठार", epic: generateEPIC(6, i+1) }))
-    };
-}
-
-// ============================================================
-// INIT DATABASE — FIXED
+// DATABASE INIT
 // ============================================================
 let database = null;
 try {
@@ -1273,10 +465,7 @@ try {
     if (stored) database = JSON.parse(stored);
 } catch(e) { database = null; }
 
-// Fresh DB if missing or empty voters
-if (!database || !database.voters || database.voters.length === 0) {
-    const vd = generateVoterData();
-    const allVoters = [...vd.ward1, ...vd.ward2, ...vd.ward3, ...vd.ward4, ...vd.ward5, ...vd.ward6];
+if (!database || !database.voters) {
     database = {
         settings: { name: "सामली पठार", district: "प्रतापगढ़", state: "Rajasthan", wards: 6 },
         families: [], works: [], complaints: [], notices: [], team: [],
@@ -1288,17 +477,20 @@ if (!database || !database.voters || database.voters.length === 0) {
             {title:"जल जीवन मिशन", description:"पेयजल संबंधी जानकारी"},
             {title:"मनरेगा", description:"ग्रामीण रोजगार संबंधी जानकारी"}
         ],
-        voters: allVoters
+        voters: []
     };
     saveDatabase();
-    console.log('✅ Fresh DB created with', allVoters.length, 'voters');
 }
 
 function saveDatabase() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(database)); } catch(e) {}
 }
 
-function generateID() { return Date.now() + Math.floor(Math.random() * 1000); }
+function generateID() { return Date.now() + Math.floor(Math.random() * 100000); }
+
+function generateEPIC(ward, index) {
+    return "RJP" + String(ward).padStart(2, '0') + String(index).padStart(6, '0');
+}
 
 function escapeHTML(value) {
     return String(value ?? "").replace(/[&<>"']/g, function(m) {
@@ -1307,7 +499,58 @@ function escapeHTML(value) {
 }
 
 // ============================================================
-// LOGIN — FIXED
+// DEMO VOTERS LOAD (optional)
+// ============================================================
+function loadDemoVoters() {
+    if (!confirm("Demo voters load करें? मौजूदा data में add होंगे।")) return;
+    const demo = [
+        {name:"राम लाल", father:"माझीरा बी मीमा", house:"01", age:52, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
+        {name:"रामली बाई", father:"राम लाल", house:"01", age:50, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
+        {name:"धनेश्वर", father:"माझीरा", house:"1", age:36, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
+        {name:"तुलसी", father:"धनेश्वर", house:"1", age:35, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
+        {name:"गीता कुमारी मीमा", father:"राम लाल मीमा", house:"1", age:23, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
+        {name:"शांति कुमारी", father:"राम लाल", house:"01", age:21, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
+        {name:"राधा कुमारी", father:"प्रश्नराज", house:"01", age:20, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
+        {name:"मगवती", father:"मगवती", house:"3", age:62, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
+        {name:"नंदुनी", father:"प्रश्नराज", house:"3", age:62, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
+        {name:"मेरकी", father:"रामलाल", house:"", age:31, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
+        {name:"सिवलाल", father:"मनवती", house:"3", age:30, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
+        {name:"कन्हैयालाल", father:"मनवती", house:"3", age:30, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
+        {name:"रेखा", father:"सिवलाल", house:"3", age:28, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
+        {name:"गणेश लाल", father:"मनवती लाल", house:"26", age:26, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
+        {name:"शारदा कुमारी", father:"गणेश लाल", house:"03", age:24, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
+        {name:"सविता", father:"कन्हैया लाल", house:"03", age:24, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
+        {name:"रकमा", father:"देवेबी", house:"4", age:60, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
+        {name:"हिंकी", father:"रकमा", house:"4", age:60, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
+        {name:"कुलचन्द", father:"मनवती", house:"4", age:59, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
+        {name:"कैलास", father:"मनवती", house:"4", age:40, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
+        {name:"काली", father:"कैलास", house:"4", age:39, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
+        {name:"रामलाल", father:"रमलाल", house:"4", age:36, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
+        {name:"नाभुलाल", father:"मनवती", house:"4", age:36, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
+        {name:"प्रेमवाई", father:"रमलाल", house:"4", age:36, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
+        {name:"नारणी", father:"नाथूलाल", house:"4", age:35, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
+        {name:"ईश्वरलाल", father:"रकमा", house:"4", age:32, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
+        {name:"खातु राम", father:"हुलचन्द", house:"4", age:31, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
+        {name:"पारसलम", father:"कुलचंद", house:"4", age:30, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""},
+        {name:"पिंकी कुमारी", father:"पारसलम", house:"4", age:29, gender:"महिला", ward:"1", village:"राणपुर", mobile:""},
+        {name:"गोरखन", father:"स्नातक", house:"5", age:62, gender:"पुरुष", ward:"1", village:"राणपुर", mobile:""}
+    ];
+    let idx = database.voters.length;
+    demo.forEach(v => {
+        idx++;
+        database.voters.push({
+            ...v,
+            id: generateID(),
+            epic: v.epic || generateEPIC(v.ward, idx)
+        });
+    });
+    saveDatabase();
+    renderAll();
+    showToast('✅ Demo voters add हो गए: ' + demo.length, 'success');
+}
+
+// ============================================================
+// LOGIN HANDLER
 // ============================================================
 let currentUser = null;
 
@@ -1315,20 +558,18 @@ document.getElementById("loginForm").addEventListener("submit", function(e) {
     e.preventDefault();
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value;
-
     if (USERS[username] && USERS[username].password === password) {
-        currentUser = { username: username, role: USERS[username].role, name: USERS[username].name };
+        currentUser = { username, role: USERS[username].role, name: USERS[username].name };
         sessionStorage.setItem("currentUser", JSON.stringify(currentUser));
         document.getElementById("loginScreen").classList.add("hidden");
         buildNavigation();
         renderAll();
         showToast('✅ Login successful!', 'success');
     } else {
-        alert("❌ Username या Password गलत है।\n\nAdmin: admin / admin123\nStaff: staff / staff123");
+        alert("❌ गलत Username/Password\n\nAdmin: admin / admin123\nStaff: staff / staff123");
     }
 });
 
-// Auto-login with proper render
 const savedUser = sessionStorage.getItem("currentUser");
 if (savedUser) {
     try {
@@ -1338,12 +579,8 @@ if (savedUser) {
             document.getElementById("loginScreen").classList.add("hidden");
             buildNavigation();
             renderAll();
-        } else {
-            sessionStorage.removeItem("currentUser");
         }
-    } catch(e) {
-        sessionStorage.removeItem("currentUser");
-    }
+    } catch(e) {}
 }
 
 function logout() {
@@ -1358,14 +595,15 @@ function buildNavigation() {
     const nav = document.getElementById("navigation");
     let html = "";
     html += `<button class="active" onclick="showPage('dashboard',this)">🏠 Dashboard</button>`;
+    html += `<button onclick="showPage('pdfupload',this)">📄 PDF Upload</button>`;
     html += `<button onclick="showPage('voters',this)">🗳️ मतदाता सूची</button>`;
-    html += `<button onclick="showPage('families',this)">👥 परिवार / निवासी</button>`;
+    html += `<button onclick="showPage('families',this)">👥 परिवार</button>`;
     html += `<button onclick="showPage('works',this)">🏗️ विकास कार्य</button>`;
     html += `<button onclick="showPage('complaints',this)">📝 शिकायतें</button>`;
-    html += `<button onclick="showPage('schemes',this)">📋 सरकारी योजनाएँ</button>`;
+    html += `<button onclick="showPage('schemes',this)">📋 योजनाएँ</button>`;
     if (currentUser && currentUser.role === "admin") {
         html += `<button onclick="showPage('notices',this)">🔔 Notifications</button>`;
-        html += `<button onclick="showPage('team',this)">👨‍💼 Staff / Team</button>`;
+        html += `<button onclick="showPage('team',this)">👨‍💼 Team</button>`;
         html += `<button onclick="showPage('settings',this)">⚙️ Settings</button>`;
     }
     html += `<button onclick="showPage('reports',this)">📊 Reports</button>`;
@@ -1383,91 +621,472 @@ function showPage(pageName, button) {
     if (pageName === "voters") renderVoters();
 }
 
-function toggleMenu() {
-    document.getElementById("sidebar").classList.toggle("open");
+function toggleMenu() { document.getElementById("sidebar").classList.toggle("open"); }
+
+// ============================================================
+// PDF UPLOAD & PARSING
+// ============================================================
+const uploadArea = document.getElementById("uploadArea");
+const pdfFileInput = document.getElementById("pdfFileInput");
+const progressBar = document.getElementById("progressBar");
+const progressFill = document.getElementById("progressFill");
+const pdfStatus = document.getElementById("pdfStatus");
+
+uploadArea.addEventListener("click", () => pdfFileInput.click());
+
+uploadArea.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    uploadArea.classList.add("dragover");
+});
+uploadArea.addEventListener("dragleave", () => uploadArea.classList.remove("dragover"));
+uploadArea.addEventListener("drop", (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove("dragover");
+    const files = e.dataTransfer.files;
+    if (files.length > 0) handlePDFUpload(files[0]);
+});
+
+pdfFileInput.addEventListener("change", (e) => {
+    if (e.target.files.length > 0) handlePDFUpload(e.target.files[0]);
+});
+
+async function handlePDFUpload(file) {
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+        showToast('❌ केवल PDF file upload करें', 'error');
+        return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+        showToast('❌ File 20MB से बड़ी है', 'error');
+        return;
+    }
+
+    progressBar.style.display = 'block';
+    progressFill.style.width = '5%';
+    progressFill.textContent = '5%';
+    pdfStatus.innerHTML = '⏳ PDF पढ़ रहे हैं...';
+
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const totalPages = pdf.numPages;
+        pdfStatus.innerHTML = `📖 ${totalPages} pages मिले। Data extract हो रहा है...`;
+
+        let allText = "";
+        for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+            const page = await pdf.getPage(pageNum);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items.map(item => item.str).join(' ');
+            allText += "\n" + pageText;
+            const pct = Math.round((pageNum / totalPages) * 70) + 5;
+            progressFill.style.width = pct + '%';
+            progressFill.textContent = pct + '%';
+        }
+
+        pdfStatus.innerHTML = '🔍 Data parse हो रहा है...';
+        progressFill.style.width = '80%';
+        progressFill.textContent = '80%';
+
+        const extractedVoters = parseVoterText(allText);
+
+        if (extractedVoters.length === 0) {
+            pdfStatus.innerHTML = '⚠️ कोई voter data नहीं मिला। PDF format check करें या manual entry करें।';
+            progressFill.style.width = '100%';
+            progressFill.textContent = '0 found';
+            progressFill.style.background = '#e69b00';
+            showToast('⚠️ कोई data नहीं मिला', 'warning');
+            return;
+        }
+
+        // Add to database
+        let idx = database.voters.length;
+        extractedVoters.forEach(v => {
+            idx++;
+            database.voters.push({
+                id: generateID(),
+                name: v.name || '',
+                father: v.father || '',
+                house: v.house || '',
+                age: v.age || '',
+                gender: v.gender || 'पुरुष',
+                ward: v.ward || '1',
+                village: v.village || 'सामली पठार',
+                mobile: v.mobile || '',
+                epic: v.epic || generateEPIC(v.ward || '1', idx)
+            });
+        });
+
+        saveDatabase();
+        renderAll();
+
+        progressFill.style.width = '100%';
+        progressFill.textContent = '100%';
+        progressFill.style.background = 'linear-gradient(90deg,#075e36,#10a95b)';
+        pdfStatus.innerHTML = `✅ ${extractedVoters.length} voters successfully extract हो गए!`;
+
+        showToast(`✅ ${extractedVoters.length} voters मिले`, 'success');
+
+        // Auto download Excel
+        setTimeout(() => {
+            if (confirm(`✅ ${extractedVoters.length} voters मिले।\n\nExcel file download करें?`)) {
+                exportVotersToExcel();
+            }
+        }, 500);
+
+        setTimeout(() => {
+            progressBar.style.display = 'none';
+            progressFill.style.width = '0%';
+        }, 3000);
+
+    } catch (err) {
+        console.error(err);
+        progressFill.style.background = '#c62828';
+        progressFill.textContent = 'Error';
+        pdfStatus.innerHTML = '❌ PDF पढ़ने में error: ' + err.message;
+        showToast('❌ PDF read error', 'error');
+    }
 }
 
 // ============================================================
-// VOTER FUNCTIONS — FIXED
+// PARSE VOTER TEXT (Smart extraction)
+// ============================================================
+function parseVoterText(text) {
+    const voters = [];
+    // Normalize text
+    let cleaned = text.replace(/\s+/g, ' ').trim();
+    
+    // Split into lines by common patterns
+    // Try to find voter blocks: name + father + house + age
+    // Common pattern in electoral rolls:
+    // SNo | EPIC | Name | Father | House | Age | Gender
+    
+    // Detect ward number from text
+    let wardMatch = text.match(/वार्ड\s*(?:संख्या|No\.?)?\s*[:\-]?\s*(\d+)/i);
+    const defaultWard = wardMatch ? wardMatch[1] : "1";
+    
+    // Try to split by serial numbers (1, 2, 3...) followed by data
+    // Since PDF text extraction may not preserve lines well, we try regex
+    const lines = text.split(/\n+/).map(l => l.trim()).filter(l => l.length > 5);
+    
+    // Pattern 1: Look for name + father pairs
+    // Hindi names often end with common suffixes
+    const namePattern = /([\u0900-\u097F\s]+?)\s+(?:पिता|पति|Father|Husband)[\s:]*([\u0900-\u097F\s]+)/gi;
+    
+    let match;
+    while ((match = namePattern.exec(cleaned)) !== null) {
+        const name = match[1].trim();
+        const father = match[2].trim().split(/\s{2,}/)[0];
+        if (name.length > 2 && name.length < 60 && father.length > 2) {
+            voters.push({
+                name: name,
+                father: father,
+                ward: defaultWard,
+                gender: guessGender(name),
+                house: '',
+                age: '',
+                village: 'सामली पठार',
+                mobile: ''
+            });
+        }
+    }
+    
+    // If no results, try line-by-line parsing
+    if (voters.length === 0) {
+        lines.forEach((line, i) => {
+            // Match: number name father age
+            const parts = line.split(/\s{2,}/);
+            if (parts.length >= 2) {
+                const nameMatch = parts.find(p => /[\u0900-\u097F]/.test(p) && p.length > 2 && p.length < 50);
+                if (nameMatch) {
+                    voters.push({
+                        name: nameMatch.trim(),
+                        father: parts[1] ? parts[1].trim() : '',
+                        ward: defaultWard,
+                        gender: guessGender(nameMatch),
+                        house: '',
+                        age: '',
+                        village: 'सामली पठार',
+                        mobile: ''
+                    });
+                }
+            }
+        });
+    }
+    
+    return voters.slice(0, 2000); // limit
+}
+
+function guessGender(name) {
+    // Common female suffixes in Hindi
+    const femaleSuffixes = ['बाई', 'देवी', 'कुमारी', 'बाला', 'लता', 'माला', 'रानी', 'प्रिया', 'सीता', 'गीता', 'राधा', 'लक्ष्मी', 'सरस्वती', 'पार्वती'];
+    const maleSuffixes = ['लाल', 'राम', 'कुमार', 'सिंह', 'चंद', 'प्रसाद', 'नाथ', 'दास', 'भाई'];
+    
+    for (const s of femaleSuffixes) {
+        if (name.includes(s)) return 'महिला';
+    }
+    for (const s of maleSuffixes) {
+        if (name.includes(s)) return 'पुरुष';
+    }
+    return 'पुरुष';
+}
+
+// ============================================================
+// EXCEL EXPORT
+// ============================================================
+function exportVotersToExcel() {
+    if (database.voters.length === 0) {
+        showToast('❌ कोई voter data नहीं है', 'error');
+        return;
+    }
+    
+    const data = database.voters.map((v, i) => ({
+        'क्र.सं.': i + 1,
+        'EPIC ID': v.epic || '',
+        'नाम': v.name || '',
+        'पिता/पति का नाम': v.father || '',
+        'मकान संख्या': v.house || '',
+        'आयु': v.age || '',
+        'लिंग': v.gender || '',
+        'वार्ड': v.ward || '',
+        'गाँव': v.village || '',
+        'मोबाइल नंबर': v.mobile || ''
+    }));
+    
+    const ws = XLSX.utils.json_to_sheet(data);
+    ws['!cols'] = [
+        {wch: 6}, {wch: 15}, {wch: 25}, {wch: 25},
+        {wch: 12}, {wch: 6}, {wch: 10}, {wch: 10},
+        {wch: 18}, {wch: 15}
+    ];
+    
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Voter List');
+    
+    const fileName = `Voter_List_${new Date().toISOString().slice(0,10)}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+    
+    showToast('✅ Excel file download हो गई', 'success');
+}
+
+function downloadExcelTemplate() {
+    const template = [
+        {'क्र.सं.': 1, 'EPIC ID': 'RJP01000001', 'नाम': 'राम लाल', 'पिता/पति का नाम': 'माझीरा', 'मकान संख्या': '01', 'आयु': 52, 'लिंग': 'पुरुष', 'वार्ड': '1', 'गाँव': 'सामली पठार', 'मोबाइल नंबर': '9876543210'},
+        {'क्र.सं.': 2, 'EPIC ID': 'RJP01000002', 'नाम': 'रामली बाई', 'पिता/पति का नाम': 'राम लाल', 'मकान संख्या': '01', 'आयु': 50, 'लिंग': 'महिला', 'वार्ड': '1', 'गाँव': 'सामली पठार', 'मोबाइल नंबर': ''}
+    ];
+    const ws = XLSX.utils.json_to_sheet(template);
+    ws['!cols'] = [{wch:6},{wch:15},{wch:25},{wch:25},{wch:12},{wch:6},{wch:10},{wch:10},{wch:18},{wch:15}];
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Template');
+    XLSX.writeFile(wb, 'Voter_Template.xlsx');
+    showToast('📋 Template download हो गया', 'success');
+}
+
+function exportFamiliesToExcel() {
+    if (database.families.length === 0) { showToast('कोई family data नहीं', 'error'); return; }
+    const data = database.families.map((f, i) => ({
+        'क्र.सं.': i+1,
+        'परिवार प्रमुख': f.head,
+        'मोबाइल': f.mobile,
+        'वार्ड': f.ward,
+        'सदस्य': f.members,
+        'ग्राम': f.village,
+        'नोट': f.note
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Families');
+    XLSX.writeFile(wb, 'Families.xlsx');
+    showToast('✅ Excel download', 'success');
+}
+
+function exportVoterCSV() {
+    if (database.voters.length === 0) { showToast('कोई data नहीं', 'error'); return; }
+    let csv = "क्र.सं.,EPIC ID,नाम,पिता/पति,मकान,आयु,लिंग,वार्ड,गाँव,मोबाइल\n";
+    database.voters.forEach((v, i) => {
+        csv += `${i+1},"${v.epic||''}","${v.name||''}","${v.father||''}","${v.house||''}",${v.age||''},"${v.gender||''}",${v.ward||''},"${v.village||''}","${v.mobile||''}"\n`;
+    });
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Voter_List_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('✅ CSV download', 'success');
+}
+
+function exportVoterPDF() {
+    window.print();
+}
+
+// ============================================================
+// MANUAL VOTER ADD
+// ============================================================
+document.getElementById("manualVoterForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+    const ward = document.getElementById("mVoterWard").value;
+    database.voters.push({
+        id: generateID(),
+        name: document.getElementById("mVoterName").value,
+        father: document.getElementById("mVoterFather").value,
+        epic: document.getElementById("mVoterEpic").value || generateEPIC(ward, database.voters.length + 1),
+        house: document.getElementById("mVoterHouse").value,
+        age: document.getElementById("mVoterAge").value,
+        gender: document.getElementById("mVoterGender").value,
+        ward: ward,
+        village: document.getElementById("mVoterVillage").value,
+        mobile: document.getElementById("mVoterMobile").value
+    });
+    saveDatabase();
+    this.reset();
+    document.getElementById("mVoterVillage").value = "सामली पठार";
+    renderAll();
+    showToast('✅ मतदाता जोड़ दिया', 'success');
+});
+
+// ============================================================
+// VOTERS RENDER
 // ============================================================
 function renderVoters() {
     const searchEl = document.getElementById("voterSearch");
     const wardEl = document.getElementById("voterWardFilter");
     if (!searchEl || !wardEl) return;
-
+    
     const search = searchEl.value.toLowerCase();
     const wardFilter = wardEl.value;
-
-    let filtered = database.voters.filter(v => {
-        const name = String(v.name || "").toLowerCase();
-        const father = String(v.father || "").toLowerCase();
-        const epic = String(v.epic || "").toLowerCase();
-        const house = String(v.house || "").toLowerCase();
-        const village = String(v.village || "").toLowerCase();
-        const matchSearch = !search || name.includes(search) || father.includes(search) ||
-                           epic.includes(search) || house.includes(search) || village.includes(search);
-        const matchWard = !wardFilter || v.ward === wardFilter;
+    
+    const filtered = database.voters.filter(v => {
+        const haystack = [v.name, v.father, v.epic, v.house, v.mobile, v.village].join(" ").toLowerCase();
+        const matchSearch = !search || haystack.includes(search);
+        const matchWard = !wardFilter || String(v.ward) === wardFilter;
         return matchSearch && matchWard;
     });
-
-    const stats = document.getElementById("voterStats");
+    
+    // Stats
     const wards = ["1","2","3","4","5","6"];
     let statsHtml = "";
-    let totalM = 0, totalF = 0;
+    let totalM = 0, totalF = 0, totalMobile = 0;
     wards.forEach(w => {
-        const wVoters = database.voters.filter(v => v.ward === w);
-        const male = wVoters.filter(v => v.gender === "पुरुष").length;
-        const female = wVoters.filter(v => v.gender === "महिला").length;
+        const wV = database.voters.filter(v => String(v.ward) === w);
+        const male = wV.filter(v => v.gender === "पुरुष").length;
+        const female = wV.filter(v => v.gender === "महिला").length;
         totalM += male; totalF += female;
-        statsHtml += `<div class="ward-stat-box"><div class="num">${wVoters.length}</div><div class="label">वार्ड ${w} (पु:${male} / महि:${female})</div></div>`;
+        statsHtml += `<div class="ward-stat-box"><div class="num">${wV.length}</div><div class="label">वार्ड ${w} (पु:${male} / महि:${female})</div></div>`;
     });
-    statsHtml += `<div class="ward-stat-box" style="background:#e8f5ed;"><div class="num">${database.voters.length}</div><div class="label">कुल मतदाता (पु:${totalM} / महि:${totalF})</div></div>`;
-    stats.innerHTML = statsHtml;
-
+    totalMobile = database.voters.filter(v => v.mobile).length;
+    
+    const topStats = document.getElementById("voterTopStats");
+    if (topStats) {
+        topStats.innerHTML = `
+            <div class="stat-box"><div class="num">${database.voters.length}</div><div class="lbl">कुल मतदाता</div></div>
+            <div class="stat-box"><div class="num">${totalM}</div><div class="lbl">पुरुष</div></div>
+            <div class="stat-box"><div class="num">${totalF}</div><div class="lbl">महिला</div></div>
+            <div class="stat-box"><div class="num">${totalMobile}</div><div class="lbl">मोबाइल</div></div>
+            <div class="stat-box"><div class="num">${filtered.length}</div><div class="lbl">Filtered</div></div>
+        `;
+    }
+    
+    const stats = document.getElementById("voterStats");
+    if (stats) stats.innerHTML = statsHtml;
+    
     const table = document.getElementById("voterTable");
+    if (!table) return;
     table.innerHTML = "";
     if (filtered.length === 0) {
-        table.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:20px;color:#888;">कोई मतदाता नहीं मिला</td></tr>`;
+        table.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:30px;color:#888;">
+            ${database.voters.length === 0 ? '📄 PDF upload करें या manual entry करें' : 'कोई मतदाता नहीं मिला'}
+        </td></tr>`;
         return;
     }
+    
     let html = "";
     filtered.forEach((v, i) => {
         html += `<tr>
             <td>${i+1}</td>
             <td><span class="badge">${escapeHTML(v.epic || 'N/A')}</span></td>
-            <td>${escapeHTML(v.name)}</td>
-            <td>${escapeHTML(v.father)}</td>
+            <td><strong>${escapeHTML(v.name)}</strong></td>
+            <td>${escapeHTML(v.father || '-')}</td>
             <td>${escapeHTML(v.house || '-')}</td>
-            <td>${escapeHTML(v.age)}</td>
-            <td>${escapeHTML(v.gender)}</td>
+            <td>${escapeHTML(v.age || '-')}</td>
+            <td>${escapeHTML(v.gender || '-')}</td>
             <td><span class="badge">वार्ड ${escapeHTML(v.ward)}</span></td>
-            <td>${escapeHTML(v.village)}</td>
+            <td>${escapeHTML(v.village || '-')}</td>
+            <td>${v.mobile ? '📱 ' + escapeHTML(v.mobile) : '<span style="color:#bbb;">—</span>'}</td>
+            <td style="white-space:nowrap;">
+                <button class="btn blue" style="padding:5px 9px;font-size:11px;margin:0;" onclick="openEditModal(${v.id})">✏️ Edit</button>
+                <button class="btn danger" style="padding:5px 9px;font-size:11px;margin:0;" onclick="deleteVoter(${v.id})">🗑️</button>
+            </td>
         </tr>`;
     });
     table.innerHTML = html;
 }
 
-function exportVoterCSV() {
-    let csv = "क्र.सं.,EPIC ID,नाम,पिता/पति,मकान सं.,आयु,लिंग,वार्ड,गाँव\n";
-    database.voters.forEach((v, i) => {
-        csv += `${i+1},"${v.epic||''}","${v.name}","${v.father}","${v.house||''}",${v.age},"${v.gender}",${v.ward},"${v.village}"\n`;
-    });
-    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = "voter-list-2026.csv"; a.click();
-    URL.revokeObjectURL(url);
-    showToast('✅ CSV डाउनलोड हो गया', 'success');
+// ============================================================
+// EDIT MODAL
+// ============================================================
+function openEditModal(voterId) {
+    const v = database.voters.find(x => x.id === voterId);
+    if (!v) { showToast('❌ Voter नहीं मिला', 'error'); return; }
+    
+    document.getElementById("editVoterId").value = v.id;
+    document.getElementById("editName").value = v.name || '';
+    document.getElementById("editFather").value = v.father || '';
+    document.getElementById("editEpic").value = v.epic || '';
+    document.getElementById("editHouse").value = v.house || '';
+    document.getElementById("editAge").value = v.age || '';
+    document.getElementById("editGender").value = v.gender || 'पुरुष';
+    document.getElementById("editWard").value = v.ward || '1';
+    document.getElementById("editVillage").value = v.village || '';
+    document.getElementById("editMobile").value = v.mobile || '';
+    
+    document.getElementById("editModal").classList.add("show");
 }
 
-function exportVoterPDF() {
-    showToast('📄 PDF तैयार हो रहा है...', 'warning');
-    setTimeout(() => {
-        const w = window.open('', '_blank');
-        w.document.write(`<html><head><title>Voter List</title><style>body{font-family:Arial;padding:20px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ccc;padding:6px;text-align:left;font-size:12px;}th{background:#075e36;color:white;}</style></head><body><h2>🗳️ मतदाता सूची 2026 — सामली पठार</h2>${document.querySelector('.table-container').innerHTML}</body></html>`);
-        w.document.close();
-        setTimeout(() => w.print(), 500);
-    }, 500);
+function closeEditModal() {
+    document.getElementById("editModal").classList.remove("show");
 }
+
+function saveVoterEdit() {
+    const id = Number(document.getElementById("editVoterId").value);
+    const v = database.voters.find(x => x.id === id);
+    if (!v) { showToast('❌ Voter नहीं मिला', 'error'); return; }
+    
+    const name = document.getElementById("editName").value.trim();
+    if (!name) { showToast('❌ नाम जरूरी है', 'error'); return; }
+    
+    const mobile = document.getElementById("editMobile").value.trim();
+    if (mobile && !/^\d{10}$/.test(mobile)) {
+        showToast('❌ मोबाइल 10 अंकों का होना चाहिए', 'error');
+        return;
+    }
+    
+    v.name = name;
+    v.father = document.getElementById("editFather").value.trim();
+    v.epic = document.getElementById("editEpic").value.trim();
+    v.house = document.getElementById("editHouse").value.trim();
+    v.age = document.getElementById("editAge").value;
+    v.gender = document.getElementById("editGender").value;
+    v.ward = document.getElementById("editWard").value;
+    v.village = document.getElementById("editVillage").value.trim();
+    v.mobile = mobile;
+    
+    saveDatabase();
+    closeEditModal();
+    renderAll();
+    showToast('✅ Save हो गया', 'success');
+}
+
+function deleteVoter(id) {
+    if (!confirm("इस मतदाता को delete करें?")) return;
+    database.voters = database.voters.filter(v => v.id !== id);
+    saveDatabase();
+    renderAll();
+    showToast('🗑️ Delete हो गया', 'warning');
+}
+
+// Close modal on outside click
+document.getElementById("editModal").addEventListener("click", function(e) {
+    if (e.target === this) closeEditModal();
+});
 
 // ============================================================
 // FAMILY FUNCTIONS
@@ -1477,14 +1096,15 @@ function createWardOptions() {
     ["familyWard", "complaintWard"].forEach(id => {
         const select = document.getElementById(id);
         if (!select) return;
-        const oldValue = select.value;
+        const old = select.value;
         select.innerHTML = "";
         for (let i = 1; i <= count; i++) {
             const opt = document.createElement("option");
-            opt.value = "वार्ड " + i; opt.textContent = "वार्ड " + i;
+            opt.value = "वार्ड " + i;
+            opt.textContent = "वार्ड " + i;
             select.appendChild(opt);
         }
-        if (oldValue) select.value = oldValue;
+        if (old) select.value = old;
     });
 }
 
@@ -1499,23 +1119,35 @@ document.getElementById("familyForm").addEventListener("submit", function(e) {
         village: document.getElementById("familyVillage").value,
         note: document.getElementById("familyNote").value
     });
-    saveDatabase(); this.reset(); createWardOptions(); renderAll();
-    showToast('✅ परिवार जोड़ दिया गया', 'success');
+    saveDatabase();
+    this.reset();
+    createWardOptions();
+    renderAll();
+    showToast('✅ परिवार जोड़ा गया', 'success');
 });
 
 function renderFamilies() {
     const el = document.getElementById("familySearch");
     const search = el ? el.value.toLowerCase() : "";
-    const list = database.families.filter(f => [f.head, f.mobile, f.ward, f.village].join(" ").toLowerCase().includes(search));
+    const list = database.families.filter(f => 
+        [f.head, f.mobile, f.ward, f.village].join(" ").toLowerCase().includes(search)
+    );
     const table = document.getElementById("familyTable");
     if (!table) return;
     table.innerHTML = "";
     if (list.length === 0) {
-        table.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:20px;color:#888;">कोई परिवार नहीं मिला</td></tr>`;
+        table.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:20px;color:#888;">कोई परिवार नहीं</td></tr>`;
         return;
     }
     list.forEach(f => {
-        table.innerHTML += `<tr><td>${escapeHTML(f.head)}</td><td>${escapeHTML(f.mobile||'-')}</td><td>${escapeHTML(f.ward)}</td><td>${escapeHTML(f.members)}</td><td>${escapeHTML(f.village||'-')}</td><td><button class="btn danger" onclick="deleteRecord('families',${f.id})">Delete</button></td></tr>`;
+        table.innerHTML += `<tr>
+            <td>${escapeHTML(f.head)}</td>
+            <td>${escapeHTML(f.mobile||'-')}</td>
+            <td>${escapeHTML(f.ward)}</td>
+            <td>${escapeHTML(f.members)}</td>
+            <td>${escapeHTML(f.village||'-')}</td>
+            <td><button class="btn danger" onclick="deleteRecord('families',${f.id})">Delete</button></td>
+        </tr>`;
     });
 }
 
@@ -1532,8 +1164,10 @@ document.getElementById("workForm").addEventListener("submit", function(e) {
         status: document.getElementById("workStatus").value,
         description: document.getElementById("workDescription").value
     });
-    saveDatabase(); this.reset(); renderAll();
-    showToast('✅ विकास कार्य जोड़ा गया', 'success');
+    saveDatabase();
+    this.reset();
+    renderAll();
+    showToast('✅ कार्य जोड़ा गया', 'success');
 });
 
 function renderWorks() {
@@ -1541,11 +1175,17 @@ function renderWorks() {
     if (!table) return;
     table.innerHTML = "";
     if (database.works.length === 0) {
-        table.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:#888;">कोई कार्य दर्ज नहीं है</td></tr>`;
+        table.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:#888;">कोई कार्य नहीं</td></tr>`;
         return;
     }
     database.works.forEach(w => {
-        table.innerHTML += `<tr><td>${escapeHTML(w.name)}</td><td>${escapeHTML(w.location||'-')}</td><td>₹ ${escapeHTML(w.cost||0)}</td><td><span class="badge">${escapeHTML(w.status)}</span></td><td><button class="btn danger" onclick="deleteRecord('works',${w.id})">Delete</button></td></tr>`;
+        table.innerHTML += `<tr>
+            <td>${escapeHTML(w.name)}</td>
+            <td>${escapeHTML(w.location||'-')}</td>
+            <td>₹ ${escapeHTML(w.cost||0)}</td>
+            <td><span class="badge">${escapeHTML(w.status)}</span></td>
+            <td><button class="btn danger" onclick="deleteRecord('works',${w.id})">Delete</button></td>
+        </tr>`;
     });
 }
 
@@ -1563,8 +1203,11 @@ document.getElementById("complaintForm").addEventListener("submit", function(e) 
         text: document.getElementById("complaintText").value,
         status: "Pending"
     });
-    saveDatabase(); this.reset(); createWardOptions(); renderAll();
-    showToast('✅ शिकायत दर्ज हो गई', 'success');
+    saveDatabase();
+    this.reset();
+    createWardOptions();
+    renderAll();
+    showToast('✅ शिकायत दर्ज', 'success');
 });
 
 function renderComplaints() {
@@ -1572,17 +1215,27 @@ function renderComplaints() {
     if (!table) return;
     table.innerHTML = "";
     if (database.complaints.length === 0) {
-        table.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:20px;color:#888;">कोई शिकायत नहीं है</td></tr>`;
+        table.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:20px;color:#888;">कोई शिकायत नहीं</td></tr>`;
         return;
     }
     database.complaints.forEach(c => {
-        table.innerHTML += `<tr><td>${c.id}</td><td>${escapeHTML(c.name)}</td><td>${escapeHTML(c.type)}</td><td>${escapeHTML(c.ward)}</td><td><span class="badge">${escapeHTML(c.status)}</span></td><td><button class="btn secondary" onclick="resolveComplaint(${c.id})">Resolve</button> <button class="btn danger" onclick="deleteRecord('complaints',${c.id})">Delete</button></td></tr>`;
+        table.innerHTML += `<tr>
+            <td>${c.id}</td>
+            <td>${escapeHTML(c.name)}</td>
+            <td>${escapeHTML(c.type)}</td>
+            <td>${escapeHTML(c.ward)}</td>
+            <td><span class="badge">${escapeHTML(c.status)}</span></td>
+            <td>
+                <button class="btn secondary" onclick="resolveComplaint(${c.id})">Resolve</button>
+                <button class="btn danger" onclick="deleteRecord('complaints',${c.id})">Delete</button>
+            </td>
+        </tr>`;
     });
 }
 
 function resolveComplaint(id) {
     const c = database.complaints.find(x => x.id === id);
-    if (c) { c.status = "Resolved"; saveDatabase(); renderAll(); showToast('✅ Resolve हो गई', 'success'); }
+    if (c) { c.status = "Resolved"; saveDatabase(); renderAll(); showToast('✅ Resolved', 'success'); }
 }
 
 // ============================================================
@@ -1602,30 +1255,38 @@ function renderSchemes() {
 // ============================================================
 document.getElementById("noticeForm").addEventListener("submit", function(e) {
     e.preventDefault();
-    if (!currentUser || currentUser.role !== "admin") { showToast('केवल Admin', 'error'); return; }
+    if (!currentUser || currentUser.role !== "admin") {
+        showToast('केवल Admin', 'error'); return;
+    }
     database.notices.push({
         id: generateID(),
         title: document.getElementById("noticeTitle").value,
         date: document.getElementById("noticeDate").value,
         text: document.getElementById("noticeText").value
     });
-    saveDatabase(); this.reset(); renderAll();
-    showToast('📢 सूचना प्रकाशित', 'success');
+    saveDatabase();
+    this.reset();
+    renderAll();
+    showToast('📢 प्रकाशित', 'success');
 });
 
 function renderNotices() {
     const box = document.getElementById("noticeList");
     if (box) {
         box.innerHTML = "";
-        if (database.notices.length === 0) box.innerHTML = "<p class='small'>कोई सूचना नहीं है।</p>";
+        if (database.notices.length === 0) box.innerHTML = "<p class='small'>कोई सूचना नहीं।</p>";
         database.notices.slice().reverse().forEach(n => {
-            box.innerHTML += `<div class="notice"><strong>${escapeHTML(n.title)}</strong><br>${escapeHTML(n.text)}<div class="small">${escapeHTML(n.date||"")}</div><button class="btn danger" onclick="deleteRecord('notices',${n.id})">Delete</button></div>`;
+            box.innerHTML += `<div class="notice">
+                <strong>${escapeHTML(n.title)}</strong><br>${escapeHTML(n.text)}
+                <div class="small">${escapeHTML(n.date||"")}</div>
+                <button class="btn danger" onclick="deleteRecord('notices',${n.id})">Delete</button>
+            </div>`;
         });
     }
     const db = document.getElementById("dashboardNotices");
     if (db) {
         db.innerHTML = "";
-        if (database.notices.length === 0) db.innerHTML = "<p class='small'>कोई नई सूचना नहीं।</p>";
+        if (database.notices.length === 0) db.innerHTML = "<p class='small'>कोई सूचना नहीं।</p>";
         database.notices.slice(-3).reverse().forEach(n => {
             db.innerHTML += `<div class="notice"><strong>${escapeHTML(n.title)}</strong><br>${escapeHTML(n.text)}</div>`;
         });
@@ -1637,7 +1298,9 @@ function renderNotices() {
 // ============================================================
 document.getElementById("teamForm").addEventListener("submit", function(e) {
     e.preventDefault();
-    if (!currentUser || currentUser.role !== "admin") { showToast('केवल Admin', 'error'); return; }
+    if (!currentUser || currentUser.role !== "admin") {
+        showToast('केवल Admin', 'error'); return;
+    }
     database.team.push({
         id: generateID(),
         name: document.getElementById("teamName").value,
@@ -1645,8 +1308,10 @@ document.getElementById("teamForm").addEventListener("submit", function(e) {
         mobile: document.getElementById("teamMobile").value,
         area: document.getElementById("teamArea").value
     });
-    saveDatabase(); this.reset(); renderAll();
-    showToast('👨‍💼 Member जोड़ा गया', 'success');
+    saveDatabase();
+    this.reset();
+    renderAll();
+    showToast('✅ Member जोड़ा', 'success');
 });
 
 function renderTeam() {
@@ -1654,11 +1319,17 @@ function renderTeam() {
     if (!table) return;
     table.innerHTML = "";
     if (database.team.length === 0) {
-        table.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:#888;">कोई member नहीं है</td></tr>`;
+        table.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:#888;">कोई member नहीं</td></tr>`;
         return;
     }
     database.team.forEach(t => {
-        table.innerHTML += `<tr><td>${escapeHTML(t.name)}</td><td>${escapeHTML(t.role||'-')}</td><td>${escapeHTML(t.mobile||'-')}</td><td>${escapeHTML(t.area||'-')}</td><td><button class="btn danger" onclick="deleteRecord('team',${t.id})">Delete</button></td></tr>`;
+        table.innerHTML += `<tr>
+            <td>${escapeHTML(t.name)}</td>
+            <td>${escapeHTML(t.role||'-')}</td>
+            <td>${escapeHTML(t.mobile||'-')}</td>
+            <td>${escapeHTML(t.area||'-')}</td>
+            <td><button class="btn danger" onclick="deleteRecord('team',${t.id})">Delete</button></td>
+        </tr>`;
     });
 }
 
@@ -1667,84 +1338,105 @@ function renderTeam() {
 // ============================================================
 document.getElementById("settingsForm").addEventListener("submit", function(e) {
     e.preventDefault();
-    if (!currentUser || currentUser.role !== "admin") { showToast('केवल Admin', 'error'); return; }
+    if (!currentUser || currentUser.role !== "admin") {
+        showToast('केवल Admin', 'error'); return;
+    }
     database.settings = {
         name: document.getElementById("panchayatName").value,
         district: document.getElementById("district").value,
         state: document.getElementById("state").value,
         wards: Number(document.getElementById("wardCount").value) || 6
     };
-    saveDatabase(); renderAll();
-    showToast('⚙️ Settings Save', 'success');
+    saveDatabase();
+    renderAll();
+    showToast('⚙️ Save हो गया', 'success');
 });
 
 function loadSettings() {
-    document.getElementById("panchayatName").value = database.settings.name || "सामली पठार";
-    document.getElementById("district").value = database.settings.district || "प्रतापगढ़";
+    document.getElementById("panchayatName").value = database.settings.name || "";
+    document.getElementById("district").value = database.settings.district || "";
     document.getElementById("state").value = database.settings.state || "Rajasthan";
     document.getElementById("wardCount").value = database.settings.wards || 6;
-    document.getElementById("panchayatTitle").innerText = database.settings.name + " • " + database.settings.district + " • " + database.settings.state;
+    document.getElementById("panchayatTitle").innerText =
+        database.settings.name + " • " + database.settings.district + " • " + database.settings.state;
 }
 
 // ============================================================
-// DELETE
+// DELETE RECORD
 // ============================================================
 function deleteRecord(type, id) {
     if (!confirm("Delete करें?")) return;
     database[type] = database[type].filter(item => item.id !== id);
-    saveDatabase(); renderAll();
+    saveDatabase();
+    renderAll();
     showToast('🗑️ Delete हो गया', 'warning');
 }
 
 // ============================================================
-// EXPORT
+// EXPORT / BACKUP
 // ============================================================
 function exportCSV(type) {
     const data = database[type];
-    if (!data || data.length === 0) { showToast('Data नहीं है', 'error'); return; }
+    if (!data || data.length === 0) { showToast('Data नहीं', 'error'); return; }
     const keys = Object.keys(data[0]).filter(k => k !== "id");
     let csv = keys.join(",") + "\n";
     data.forEach(row => {
-        csv += keys.map(key => '"' + String(row[key] ?? "").replaceAll('"', '""') + '"').join(",") + "\n";
+        csv += keys.map(k => '"' + String(row[k] ?? "").replaceAll('"', '""') + '"').join(",") + "\n";
     });
     const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = type + ".csv"; a.click();
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = type + ".csv";
+    a.click();
     URL.revokeObjectURL(url);
     showToast('✅ Export हो गया', 'success');
 }
 
 function exportAllData() {
     const all = {
-        voters: database.voters, families: database.families, works: database.works,
-        complaints: database.complaints, notices: database.notices, team: database.team,
-        settings: database.settings, exportDate: new Date().toISOString()
+        voters: database.voters,
+        families: database.families,
+        works: database.works,
+        complaints: database.complaints,
+        notices: database.notices,
+        team: database.team,
+        settings: database.settings,
+        exportDate: new Date().toISOString()
     };
     const blob = new Blob([JSON.stringify(all, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = "gram-panchayat-export.json"; a.click();
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "gram-panchayat-export.json";
+    a.click();
     URL.revokeObjectURL(url);
-    showToast('✅ Data Export हो गया', 'success');
+    showToast('✅ Export हो गया', 'success');
 }
 
 function downloadBackup() {
     const blob = new Blob([JSON.stringify(database, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a"); a.href = url; a.download = "gram-panchayat-backup.json"; a.click();
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "gram-panchayat-backup.json";
+    a.click();
     URL.revokeObjectURL(url);
-    showToast('💾 Backup डाउनलोड', 'success');
+    showToast('💾 Backup download', 'success');
 }
 
 function importBackup() {
     const input = document.createElement('input');
-    input.type = 'file'; input.accept = '.json';
+    input.type = 'file';
+    input.accept = '.json';
     input.onchange = function(e) {
-        const file = e.target.files[0]; if (!file) return;
+        const file = e.target.files[0];
+        if (!file) return;
         const reader = new FileReader();
         reader.onload = function(ev) {
             try {
                 const data = JSON.parse(ev.target.result);
-                if (confirm('⚠️ Data Overwrite होगा। जारी रखें?')) {
+                if (confirm('⚠️ Data overwrite होगा। जारी रखें?')) {
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
                     location.reload();
                 }
@@ -1757,7 +1449,7 @@ function importBackup() {
 
 function resetAllData() {
     if (!currentUser || currentUser.role !== "admin") { showToast('केवल Admin', 'error'); return; }
-    if (confirm("⚠️ सारा Data Delete होगा। जारी रखें?")) {
+    if (confirm("⚠️ सारा Data delete होगा। जारी रखें?")) {
         localStorage.removeItem(STORAGE_KEY);
         location.reload();
     }
@@ -1766,16 +1458,6 @@ function resetAllData() {
 // ============================================================
 // DASHBOARD
 // ============================================================
-function renderDashboardWorks() {
-    const box = document.getElementById("dashboardWorks");
-    if (!box) return;
-    box.innerHTML = "";
-    if (database.works.length === 0) { box.innerHTML = "<p class='small'>कोई विकास कार्य नहीं।</p>"; return; }
-    database.works.slice(-5).reverse().forEach(w => {
-        box.innerHTML += `<div class="notice"><strong>${escapeHTML(w.name)}</strong><br>स्थान: ${escapeHTML(w.location||'-')}<br>स्थिति: <span class="badge">${escapeHTML(w.status)}</span><br>लागत: ₹ ${escapeHTML(w.cost||0)}</div>`;
-    });
-}
-
 function updateDashboard() {
     const residents = database.families.reduce((t, f) => t + Number(f.members || 0), 0);
     const openComplaints = database.complaints.filter(c => c.status !== "Resolved").length;
@@ -1788,14 +1470,16 @@ function updateDashboard() {
     document.getElementById("reportWorks").innerText = database.works.length;
     document.getElementById("reportComplaints").innerText = openComplaints;
     if (currentUser) {
-        document.getElementById("currentUser").innerHTML = `<strong>${escapeHTML(currentUser.name)}</strong><br>Role: ${escapeHTML(currentUser.role)}<br>Username: ${escapeHTML(currentUser.username)}<br><button class="btn secondary" onclick="logout()">🚪 Logout</button>`;
+        document.getElementById("currentUser").innerHTML = `
+            <strong>${escapeHTML(currentUser.name)}</strong><br>
+            Role: ${escapeHTML(currentUser.role)}<br>
+            Username: ${escapeHTML(currentUser.username)}<br>
+            <button class="btn secondary" onclick="logout()">🚪 Logout</button>
+        `;
     }
     renderVoterChart();
 }
 
-// ============================================================
-// CHARTS
-// ============================================================
 function renderVoterChart() {
     const container = document.getElementById('voterChart');
     if (!container) return;
@@ -1803,7 +1487,7 @@ function renderVoterChart() {
     const colors = ['#075e36','#10a95b','#1ad17a','#2ee08f','#4aeba5','#6ff5bb'];
     let maxV = 0;
     const data = wards.map(w => {
-        const c = database.voters.filter(v => v.ward === w).length;
+        const c = database.voters.filter(v => String(v.ward) === w).length;
         if (c > maxV) maxV = c;
         return { ward: w, count: c };
     });
@@ -1817,7 +1501,7 @@ function renderVoterChart() {
         bar.style.height = Math.max(h, 10) + 'px';
         bar.style.background = colors[i % colors.length];
         bar.style.width = '100%';
-        bar.title = `वार्ड ${d.ward}: ${d.count} मतदाता`;
+        bar.title = `वार्ड ${d.ward}: ${d.count}`;
         const label = document.createElement('div');
         label.className = 'bar-label';
         label.textContent = `W${d.ward} (${d.count})`;
@@ -1849,7 +1533,9 @@ function startVoiceSearch(inputId) {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) { showToast('❌ Voice supported नहीं', 'error'); return; }
     const rec = new SR();
-    rec.lang = 'hi-IN'; rec.continuous = false; rec.interimResults = false;
+    rec.lang = 'hi-IN';
+    rec.continuous = false;
+    rec.interimResults = false;
     const btn = document.querySelector(`button[onclick="startVoiceSearch('${inputId}')"]`);
     if (btn) { btn.classList.add('listening'); btn.textContent = '🔴'; }
     rec.onresult = e => {
@@ -1859,7 +1545,10 @@ function startVoiceSearch(inputId) {
         if (btn) { btn.classList.remove('listening'); btn.textContent = '🎤'; }
         showToast(`🔊 "${t}"`, 'success');
     };
-    rec.onerror = () => { if (btn) { btn.classList.remove('listening'); btn.textContent = '🎤'; } showToast('❌ Voice error', 'error'); };
+    rec.onerror = () => {
+        if (btn) { btn.classList.remove('listening'); btn.textContent = '🎤'; }
+        showToast('❌ Voice error', 'error');
+    };
     rec.onend = () => { if (btn) { btn.classList.remove('listening'); btn.textContent = '🎤'; } };
     rec.start();
 }
@@ -1878,28 +1567,6 @@ function showToast(msg, type = 'success') {
 }
 
 // ============================================================
-// PWA
-// ============================================================
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault(); deferredPrompt = e;
-    const btn = document.getElementById('installBtn');
-    if (btn) btn.classList.add('show');
-});
-
-function installPWA() {
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(r => {
-            if (r.outcome === 'accepted') showToast('✅ App Installed!', 'success');
-            deferredPrompt = null;
-            const btn = document.getElementById('installBtn');
-            if (btn) btn.classList.remove('show');
-        });
-    }
-}
-
-// ============================================================
 // RENDER ALL
 // ============================================================
 function renderAll() {
@@ -1913,14 +1580,10 @@ function renderAll() {
     renderSchemes();
     renderNotices();
     renderTeam();
-    renderDashboardWorks();
     renderVoters();
 }
 
-// ============================================================
-// START
-// ============================================================
-console.log('✅ Gram Panchayat Portal loaded. Voters:', database.voters.length);
+console.log('✅ Portal loaded. Voters:', database.voters.length);
 </script>
 </body>
 </html>
